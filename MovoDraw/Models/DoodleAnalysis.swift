@@ -9,21 +9,29 @@ struct DoodleAnalysis: Sendable {
     let strokeDensity: Double
 
     enum SubjectHint: String, Sendable {
-        case flyer      // wings / tall / airborne silhouette → fly
-        case creature   // blob with legs-ish → bounce / walk
-        case vehicle    // wide / wheeled → glide
-        case nature     // green/brown heavy → sway
-        case mystery    // default gentle float
+        case flyer
+        case creature
+        case vehicle
+        case nature
+        case mystery
     }
 }
 
 struct LifeResult: Sendable {
     enum Kind: Sendable {
-        case localAnimation(DoodleAnalysis)
+        /// Primary path: realistic kid-safe image from the doodle.
+        case generatedImage(UIImage)
+        /// Secondary offline fallback only (no API key / network failure).
+        case localFallback(DoodleAnalysis)
         case remoteVideo(URL)
     }
 
     let kind: Kind
     let doodleImage: UIImage
     let safetyNotes: [String]
+    /// True when we used the offline SpriteKit path instead of cloud image gen.
+    var isFallback: Bool {
+        if case .localFallback = kind { return true }
+        return false
+    }
 }

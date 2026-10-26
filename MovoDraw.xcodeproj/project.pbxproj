@@ -12,21 +12,27 @@
 		0D9D9266384FB6767190374C /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6F4680CF97A8069F2ECE2E /* DesignSystem.swift */; };
 		13E03B09560F735550D88FE6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9AADCC08E4E4CA7D78649D9D /* Assets.xcassets */; };
 		3440978367462F7445B5F7C6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC041DEDD1B6688A3C365A1 /* ContentView.swift */; };
+		491E8768F351AC2293ADC7F8 /* FalImageClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3243DF4FA910CC4F064223F2 /* FalImageClient.swift */; };
 		62C54580E5BEE63F63A89F5F /* SafetyFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A22EA32140E4121A55C4DEEB /* SafetyFilter.swift */; };
 		6F0446A6F24F5E42FD8FB2D7 /* DrawingCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43ADD3B557A1C1FD48C5B406 /* DrawingCanvas.swift */; };
+		788FB78DF65F52C158263693 /* OpenAIImageClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764FD7E2AA3DFE55E3014DB9 /* OpenAIImageClient.swift */; };
 		91CAAB805F61C55E97AF3021 /* DoodleAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABAE15E41070D2E9BF3323A2 /* DoodleAnalyzer.swift */; };
+		C0C7233466A3123EFF675FDE /* APIKeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D875D1A259776EBFE25139 /* APIKeyStore.swift */; };
 		CAB28E972D4F95EBFF579878 /* LivingDoodleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7549FBFA53FF729C920C91A3 /* LivingDoodleView.swift */; };
 		CC4BB10913FE11DCC343EA02 /* MovoDrawApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B57E834136FA8C3FACDB31FB /* MovoDrawApp.swift */; };
 		E4A8E5D872B851C83289B1AC /* LifeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B44BA3B34700D708F79B22F /* LifeService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3243DF4FA910CC4F064223F2 /* FalImageClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FalImageClient.swift; sourceTree = "<group>"; };
+		34D875D1A259776EBFE25139 /* APIKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyStore.swift; sourceTree = "<group>"; };
 		43ADD3B557A1C1FD48C5B406 /* DrawingCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawingCanvas.swift; sourceTree = "<group>"; };
 		5B44BA3B34700D708F79B22F /* LifeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeService.swift; sourceTree = "<group>"; };
 		6A6F4680CF97A8069F2ECE2E /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		6BA460962144EF8D3C4D2861 /* MovoDraw.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MovoDraw.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6C4BAC997996D4AAF9C37BBE /* MagicLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagicLoadingView.swift; sourceTree = "<group>"; };
 		7549FBFA53FF729C920C91A3 /* LivingDoodleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivingDoodleView.swift; sourceTree = "<group>"; };
+		764FD7E2AA3DFE55E3014DB9 /* OpenAIImageClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIImageClient.swift; sourceTree = "<group>"; };
 		7CC041DEDD1B6688A3C365A1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		9AADCC08E4E4CA7D78649D9D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A22EA32140E4121A55C4DEEB /* SafetyFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyFilter.swift; sourceTree = "<group>"; };
@@ -61,8 +67,11 @@
 		706EDD95DF54A5EB892E5574 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				34D875D1A259776EBFE25139 /* APIKeyStore.swift */,
 				ABAE15E41070D2E9BF3323A2 /* DoodleAnalyzer.swift */,
+				3243DF4FA910CC4F064223F2 /* FalImageClient.swift */,
 				5B44BA3B34700D708F79B22F /* LifeService.swift */,
+				764FD7E2AA3DFE55E3014DB9 /* OpenAIImageClient.swift */,
 				A22EA32140E4121A55C4DEEB /* SafetyFilter.swift */,
 			);
 			path = Services;
@@ -173,15 +182,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0C7233466A3123EFF675FDE /* APIKeyStore.swift in Sources */,
 				3440978367462F7445B5F7C6 /* ContentView.swift in Sources */,
 				0D9D9266384FB6767190374C /* DesignSystem.swift in Sources */,
 				066B00EF3E2F3B3F6EF0B232 /* DoodleAnalysis.swift in Sources */,
 				91CAAB805F61C55E97AF3021 /* DoodleAnalyzer.swift in Sources */,
 				6F0446A6F24F5E42FD8FB2D7 /* DrawingCanvas.swift in Sources */,
+				491E8768F351AC2293ADC7F8 /* FalImageClient.swift in Sources */,
 				E4A8E5D872B851C83289B1AC /* LifeService.swift in Sources */,
 				CAB28E972D4F95EBFF579878 /* LivingDoodleView.swift in Sources */,
 				0D86B9AC81ABEDFF40D2FD1F /* MagicLoadingView.swift in Sources */,
 				CC4BB10913FE11DCC343EA02 /* MovoDrawApp.swift in Sources */,
+				788FB78DF65F52C158263693 /* OpenAIImageClient.swift in Sources */,
 				62C54580E5BEE63F63A89F5F /* SafetyFilter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
