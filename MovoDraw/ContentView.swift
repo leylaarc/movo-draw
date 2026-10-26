@@ -156,7 +156,7 @@ struct ContentView: View {
     private func resultScreen(_ result: LifeResult) -> some View {
         VStack(spacing: 12) {
             HStack {
-                Text("Alive!")
+                Text(result.isFallback ? "Almost…" : "Alive!")
                     .font(.system(size: 34, weight: .heavy, design: .rounded))
                     .foregroundStyle(MDColor.ink)
                 Spacer()
@@ -164,12 +164,36 @@ struct ContentView: View {
             .padding(.horizontal, 20)
             .padding(.top, 8)
 
+            if result.isFallback {
+                Text("Offline preview — add FAL_KEY for real magic")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(MDColor.ink.opacity(0.65))
+                    .padding(.horizontal, 20)
+            }
+
             Group {
                 switch result.kind {
-                case .localAnimation(let analysis):
+                case .generatedImage(let image):
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                        .shadow(color: .black.opacity(0.14), radius: 18, y: 10)
+                        .padding(.horizontal, 16)
+                case .localFallback(let analysis):
+                    // Secondary demoted path
                     LivingDoodleView(image: result.doodleImage, analysis: analysis)
                         .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                        .shadow(color: .black.opacity(0.12), radius: 16, y: 8)
+                        .opacity(0.92)
+                        .overlay(alignment: .topTrailing) {
+                            Text("Fallback")
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Capsule().fill(MDColor.grape.opacity(0.9)))
+                                .padding(24)
+                        }
                         .padding(.horizontal, 16)
                 case .remoteVideo(let url):
                     VStack {

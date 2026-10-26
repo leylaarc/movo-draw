@@ -17,7 +17,10 @@ xcuserdata/
 # macOS
 .DS_Store
 
-# Secrets
+# Secrets — never commit real keys
 .env
+.env.*
 *.pem
 Secrets.xcconfig
+**/Secrets.xcconfig
+*.secret

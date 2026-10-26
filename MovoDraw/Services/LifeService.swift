@@ -2,7 +2,6 @@ import Foundation
 import UIKit
 
 /// Pluggable “bring doodle to life” pipeline.
-/// Swap `LocalDemoLifeService` for a cloud image-to-video model later.
 protocol LifeService: Sendable {
     func bringToLife(_ image: UIImage) async throws -> LifeResult
 }
@@ -17,56 +16,44 @@ enum LifeServiceError: LocalizedError {
         switch self {
         case .emptyCanvas: return "Draw something first!"
         case .unsafeContent: return "Let's draw something friendly."
-        case .missingAPIKey: return "No cloud API key — using local magic."
+        case .missingAPIKey: return "Add an API key to generate realistic images."
         case .remoteFailed(let msg): return msg
         }
     }
 }
 
-/// Factory: prefers cloud when keys exist, otherwise local demo.
 enum LifeServiceFactory {
+    /// Prefer cloud image gen when a key exists; otherwise offline fallback.
     static func make() -> any LifeService {
-        if CloudLifeService.hasCredentials {
+        if APIKeyStore.hasAnyCloudKey() {
             return CloudLifeService()
         }
         return LocalDemoLifeService()
     }
 }
 
-/// Offline path: analyze doodle + return local animation instructions.
+/// Offline secondary path — demoted UI; only when no key / as last resort.
 struct LocalDemoLifeService: LifeService {
     func bringToLife(_ image: UIImage) async throws -> LifeResult {
-        try await Task.sleep(nanoseconds: 1_800_000_000) // kid-friendly “magic” beat
+        try await Task.sleep(nanoseconds: 900_000_000)
         let analysis = DoodleAnalyzer.analyze(image)
         let creative = SafetyFilter.creativePrompt(for: analysis)
         guard SafetyFilter.isSafe(creative) else {
             throw LifeServiceError.unsafeContent
         }
-        _ = SafetyFilter.prompt(for: analysis) // full prompt ready for future cloud use
         return LifeResult(
-            kind: .localAnimation(analysis),
+            kind: .localFallback(analysis),
             doodleImage: image,
-            safetyNotes: ["Local demo animation", "Kid-safe prompt gated"]
+            safetyNotes: [
+                "Offline fallback (no API key)",
+                "Set FAL_KEY for realistic image generation"
+            ]
         )
     }
 }
 
-/// Cloud stub — activates when `MOVO_DRAW_API_KEY` (or OpenAI / Replicate) is set.
-/// Does not invent credentials; falls back is handled by the factory.
+/// Cloud path: fal.ai FLUX Kontext (primary) or OpenAI Images edits (secondary).
 struct CloudLifeService: LifeService {
-    static var hasCredentials: Bool {
-        env("MOVO_DRAW_API_KEY") != nil
-            || env("REPLICATE_API_TOKEN") != nil
-            || env("OPENAI_API_KEY") != nil
-            || env("RUNWAY_API_KEY") != nil
-    }
-
-    private static func env(_ key: String) -> String? {
-        let value = ProcessInfo.processInfo.environment[key]
-        guard let value, !value.isEmpty else { return nil }
-        return value
-    }
-
     func bringToLife(_ image: UIImage) async throws -> LifeResult {
         let analysis = DoodleAnalyzer.analyze(image)
         let creative = SafetyFilter.creativePrompt(for: analysis)
@@ -74,24 +61,55 @@ struct CloudLifeService: LifeService {
             throw LifeServiceError.unsafeContent
         }
         let prompt = SafetyFilter.prompt(for: analysis)
-        _ = prompt
 
-        // Real provider wiring belongs here once a key + model are chosen.
-        // For now: if a key exists but no provider adapter is configured,
-        // fall through to the same local animation so the app never breaks.
-        _ = Self.env("MOVO_DRAW_API_KEY")
-            ?? Self.env("REPLICATE_API_TOKEN")
-            ?? Self.env("OPENAI_API_KEY")
-            ?? Self.env("RUNWAY_API_KEY")
-
-        try await Task.sleep(nanoseconds: 1_200_000_000)
-        return LifeResult(
-            kind: .localAnimation(analysis),
-            doodleImage: image,
-            safetyNotes: [
-                "API key detected — cloud adapter not yet configured; using local animation",
-                "Prompt was kid-safety filtered"
-            ]
-        )
+        do {
+            if let falKey = APIKeyStore.falKey() {
+                let client = FalImageClient(apiKey: falKey)
+                let generated = try await client.generateRealisticImage(from: image, prompt: prompt)
+                return LifeResult(
+                    kind: .generatedImage(generated),
+                    doodleImage: image,
+                    safetyNotes: [
+                        "fal.ai FLUX Kontext",
+                        "Kid-safe prompt + enable_safety_checker"
+                    ]
+                )
+            }
+            if let openAIKey = APIKeyStore.openAIKey() {
+                let client = OpenAIImageClient(apiKey: openAIKey)
+                let generated = try await client.generateRealisticImage(from: image, prompt: prompt)
+                return LifeResult(
+                    kind: .generatedImage(generated),
+                    doodleImage: image,
+                    safetyNotes: [
+                        "OpenAI gpt-image-1 edits",
+                        "moderation=auto + kid-safe prompt"
+                    ]
+                )
+            }
+            throw LifeServiceError.missingAPIKey
+        } catch let error as LifeServiceError {
+            if case .unsafeContent = error { throw error }
+            // Network / provider failure → soft local fallback so the kid still gets something.
+            let analysis = DoodleAnalyzer.analyze(image)
+            return LifeResult(
+                kind: .localFallback(analysis),
+                doodleImage: image,
+                safetyNotes: [
+                    "Cloud failed — showing offline fallback",
+                    error.localizedDescription
+                ]
+            )
+        } catch {
+            let analysis = DoodleAnalyzer.analyze(image)
+            return LifeResult(
+                kind: .localFallback(analysis),
+                doodleImage: image,
+                safetyNotes: [
+                    "Cloud failed — showing offline fallback",
+                    error.localizedDescription
+                ]
+            )
+        }
     }
 }
