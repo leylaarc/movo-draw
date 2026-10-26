@@ -15,43 +15,49 @@ struct ContentView: View {
     @State private var errorMessage: String?
     @State private var showEmptyHint = false
     @State private var didAutoDemo = false
+    @State private var resultAppeared = false
 
-    /// `-DemoDragon` launch arg seeds a black/red dragon and brings it to life.
     private var shouldAutoDemo: Bool {
         ProcessInfo.processInfo.arguments.contains("-DemoDragon")
     }
 
     private let palette: [(name: String, color: UIColor)] = [
         ("Black", .black),
-        ("Red", UIColor(red: 0.92, green: 0.18, blue: 0.22, alpha: 1)),
-        ("Blue", UIColor(red: 0.2, green: 0.45, blue: 0.98, alpha: 1)),
-        ("Yellow", UIColor(red: 1.0, green: 0.8, blue: 0.1, alpha: 1)),
-        ("Green", UIColor(red: 0.2, green: 0.75, blue: 0.35, alpha: 1)),
-        ("Purple", UIColor(red: 0.58, green: 0.35, blue: 0.95, alpha: 1)),
-        ("Orange", UIColor(red: 1.0, green: 0.5, blue: 0.15, alpha: 1))
+        ("Red", UIColor(red: 0.92, green: 0.22, blue: 0.28, alpha: 1)),
+        ("Blue", UIColor(red: 0.22, green: 0.48, blue: 0.95, alpha: 1)),
+        ("Yellow", UIColor(red: 1.0, green: 0.82, blue: 0.18, alpha: 1)),
+        ("Green", UIColor(red: 0.22, green: 0.72, blue: 0.42, alpha: 1)),
+        ("Purple", UIColor(red: 0.55, green: 0.38, blue: 0.92, alpha: 1)),
+        ("Orange", UIColor(red: 1.0, green: 0.52, blue: 0.18, alpha: 1))
     ]
 
     private let lifeService: any LifeService = LifeServiceFactory.make()
 
     var body: some View {
         ZStack {
-            background
+            StudioAtmosphere()
 
             switch screen {
             case .draw:
                 drawScreen
-                    .transition(.opacity)
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .scale(scale: 0.98)),
+                        removal: .opacity
+                    ))
             case .magic:
                 MagicLoadingView()
                     .transition(.opacity)
             case .living:
                 if let result {
                     resultScreen(result)
-                        .transition(.opacity)
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 0.94)),
+                            removal: .opacity
+                        ))
                 }
             }
         }
-        .animation(.easeInOut(duration: 0.35), value: screen)
+        .animation(.spring(response: 0.45, dampingFraction: 0.86), value: screen)
         .alert("Draw first!", isPresented: $showEmptyHint) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -75,101 +81,110 @@ struct ContentView: View {
         }
     }
 
-    private var background: some View {
-        LinearGradient(
-            colors: [MDColor.skyTop, MDColor.skyBottom, MDColor.grass.opacity(0.35)],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-        .ignoresSafeArea()
-    }
+    // MARK: - Draw (one job: doodle)
 
     private var drawScreen: some View {
-        VStack(spacing: 16) {
-            HStack {
-                Text("Movo Draw")
-                    .font(.system(size: 34, weight: .heavy, design: .rounded))
-                    .foregroundStyle(MDColor.ink)
+        VStack(spacing: 0) {
+            // Brand hero — first-screen signal
+            HStack(alignment: .top) {
+                MovoBrandMark(size: 46)
                 Spacer()
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
+            .padding(.horizontal, MDLayout.screenPad)
+            .padding(.top, 10)
+            .padding(.bottom, 14)
 
+            // Paper plane — the drawing surface, not a “card”
             DoodleCanvasRepresentable(
                 controller: canvas,
                 color: selectedUIColor,
                 lineWidth: MDLayout.brushWidth
             )
+            .background(MDColor.paper)
+            .clipShape(RoundedRectangle(cornerRadius: MDLayout.corner, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: MDLayout.corner, style: .continuous)
+                    .strokeBorder(MDColor.paperEdge, lineWidth: 3)
+            )
+            .padding(.horizontal, MDLayout.screenPad)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.horizontal, 16)
 
-            colorBar
+            // Calm dock: crayons → quiet tools → one full-width CTA
+            VStack(spacing: 16) {
+                colorBar
 
-            HStack(spacing: 16) {
-                KidIconButton(systemImage: "arrow.uturn.backward", label: "Undo", color: MDColor.grape) {
-                    canvas.undo()
+                HStack(spacing: 14) {
+                    KidToolButton(
+                        systemImage: "arrow.uturn.backward",
+                        label: "Undo",
+                        tint: MDColor.tool
+                    ) { canvas.undo() }
+
+                    KidToolButton(
+                        systemImage: "trash",
+                        label: "Clear",
+                        tint: MDColor.warn
+                    ) { canvas.clear() }
+
+                    Spacer(minLength: 0)
                 }
-                KidIconButton(systemImage: "trash", label: "Clear", color: MDColor.coral) {
-                    canvas.clear()
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 20)
 
-            KidPrimaryButton(
-                title: "Bring to Life",
-                systemImage: "sparkles",
-                color: MDColor.coral
-            ) {
-                Task { await bringToLife() }
+                KidPrimaryButton(
+                    title: "Bring to Life",
+                    systemImage: "sparkles",
+                    color: MDColor.life
+                ) {
+                    Task { await bringToLife() }
+                }
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 12)
+            .padding(.horizontal, MDLayout.screenPad)
+            .padding(.top, 16)
+            .padding(.bottom, 14)
         }
     }
 
     private var colorBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 14) {
+            HStack(spacing: 12) {
                 ForEach(Array(palette.enumerated()), id: \.offset) { _, item in
-                    Button {
+                    CrayonSwatch(
+                        color: Color(item.color),
+                        selected: colorsMatch(selectedUIColor, item.color),
+                        name: item.name
+                    ) {
                         selectedUIColor = item.color
-                    } label: {
-                        Circle()
-                            .fill(Color(item.color))
-                            .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
-                            .overlay(
-                                Circle()
-                                    .strokeBorder(.white, lineWidth: colorsMatch(selectedUIColor, item.color) ? 5 : 0)
-                            )
-                            .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
                     }
-                    .accessibilityLabel(item.name)
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 6)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity)
         }
     }
 
+    // MARK: - Alive (one job: show the result)
+
     @ViewBuilder
     private func resultScreen(_ result: LifeResult) -> some View {
-        VStack(spacing: 12) {
-            HStack {
-                Text(result.isFallback ? "Almost…" : "Alive!")
-                    .font(.system(size: 34, weight: .heavy, design: .rounded))
-                    .foregroundStyle(MDColor.ink)
+        VStack(spacing: 0) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(result.isFallback ? "Almost" : "Alive!")
+                        .font(MDType.brand(40))
+                        .foregroundStyle(MDColor.ink)
+                    if result.isFallback {
+                        Text("Add FAL_KEY for real magic")
+                            .font(MDType.label(15))
+                            .foregroundStyle(MDColor.inkSoft)
+                    }
+                }
                 Spacer()
+                MovoBrandMark(size: 22, compact: true)
+                    .opacity(0.55)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-
-            if result.isFallback {
-                Text("Offline preview — add FAL_KEY for real magic")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundStyle(MDColor.ink.opacity(0.65))
-                    .padding(.horizontal, 20)
-            }
+            .padding(.horizontal, MDLayout.screenPad)
+            .padding(.top, 10)
+            .padding(.bottom, 16)
 
             Group {
                 switch result.kind {
@@ -177,24 +192,24 @@ struct ContentView: View {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFit()
-                        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                        .shadow(color: .black.opacity(0.14), radius: 18, y: 10)
-                        .padding(.horizontal, 16)
+                        .clipShape(RoundedRectangle(cornerRadius: MDLayout.corner, style: .continuous))
+                        .padding(.horizontal, MDLayout.screenPad)
                 case .localFallback(let analysis):
-                    // Secondary demoted path
                     LivingDoodleView(image: result.doodleImage, analysis: analysis)
-                        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                        .opacity(0.92)
+                        .clipShape(RoundedRectangle(cornerRadius: MDLayout.corner, style: .continuous))
                         .overlay(alignment: .topTrailing) {
-                            Text("Fallback")
-                                .font(.system(size: 13, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
+                            Text("Offline")
+                                .font(MDType.label(13))
+                                .foregroundStyle(MDColor.inkSoft)
                                 .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Capsule().fill(MDColor.grape.opacity(0.9)))
-                                .padding(24)
+                                .padding(.vertical, 7)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(MDColor.paper.opacity(0.92))
+                                )
+                                .padding(28)
                         }
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, MDLayout.screenPad)
                 case .remoteVideo(let url):
                     VStack {
                         Image(uiImage: result.doodleImage)
@@ -206,19 +221,29 @@ struct ContentView: View {
                     .padding()
                 }
             }
+            .scaleEffect(resultAppeared ? 1 : 0.92)
+            .opacity(resultAppeared ? 1 : 0)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .onAppear {
+                resultAppeared = false
+                withAnimation(.spring(response: 0.55, dampingFraction: 0.78)) {
+                    resultAppeared = true
+                }
+            }
 
             KidPrimaryButton(
                 title: "Draw Again",
                 systemImage: "pencil.tip",
-                color: MDColor.mint
+                color: MDColor.again
             ) {
                 canvas.clear()
                 self.result = nil
+                resultAppeared = false
                 screen = .draw
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 12)
+            .padding(.horizontal, MDLayout.screenPad)
+            .padding(.top, 14)
+            .padding(.bottom, 16)
         }
     }
 

@@ -1,60 +1,69 @@
 import SwiftUI
 
 struct MagicLoadingView: View {
-    @State private var spin = false
-    @State private var bounce = false
-    @State private var sparkle = false
+    @State private var phase = false
+    @State private var breathe = false
+    @State private var ring = false
 
     var body: some View {
         ZStack {
+            // Soft shifting wash — intentional, not strobing
             LinearGradient(
-                colors: [MDColor.grape.opacity(0.85), MDColor.coral.opacity(0.9), MDColor.sunshine.opacity(0.8)],
+                colors: phase
+                    ? [MDColor.magicA, MDColor.magicB, MDColor.magicC.opacity(0.85)]
+                    : [MDColor.magicC.opacity(0.85), MDColor.magicA, MDColor.magicB],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
+            .animation(.easeInOut(duration: 2.4).repeatForever(autoreverses: true), value: phase)
 
             VStack(spacing: 28) {
                 ZStack {
                     Circle()
-                        .strokeBorder(.white.opacity(0.35), lineWidth: 8)
-                        .frame(width: 140, height: 140)
-                        .rotationEffect(.degrees(spin ? 360 : 0))
-                        .animation(.linear(duration: 2.2).repeatForever(autoreverses: false), value: spin)
+                        .fill(.white.opacity(0.18))
+                        .frame(width: 168, height: 168)
+                        .scaleEffect(breathe ? 1.08 : 0.92)
 
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 64, weight: .bold))
+                    Circle()
+                        .strokeBorder(.white.opacity(0.55), lineWidth: 5)
+                        .frame(width: 132, height: 132)
+                        .rotationEffect(.degrees(ring ? 360 : 0))
+
+                    Image(systemName: "wand.and.stars")
+                        .font(.system(size: 54, weight: .semibold))
                         .foregroundStyle(.white)
-                        .scaleEffect(bounce ? 1.15 : 0.9)
-                        .animation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true), value: bounce)
+                        .scaleEffect(breathe ? 1.06 : 0.94)
                 }
 
-                Text("Magic…")
-                    .font(.system(size: 40, weight: .heavy, design: .rounded))
+                Text("Magic")
+                    .font(MDType.brand(44))
                     .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
 
-                HStack(spacing: 14) {
+                // Three quiet dots — presence, not clutter
+                HStack(spacing: 12) {
                     ForEach(0..<3, id: \.self) { i in
                         Circle()
-                            .fill(.white)
-                            .frame(width: 16, height: 16)
-                            .offset(y: sparkle ? -10 : 10)
+                            .fill(.white.opacity(0.95))
+                            .frame(width: 12, height: 12)
+                            .offset(y: breathe ? -6 : 6)
                             .animation(
-                                .easeInOut(duration: 0.45)
+                                .easeInOut(duration: 0.55)
                                     .repeatForever(autoreverses: true)
-                                    .delay(Double(i) * 0.15),
-                                value: sparkle
+                                    .delay(Double(i) * 0.14),
+                                value: breathe
                             )
                     }
                 }
             }
         }
         .onAppear {
-            spin = true
-            bounce = true
-            sparkle = true
+            phase = true
+            breathe = true
+            withAnimation(.linear(duration: 3.2).repeatForever(autoreverses: false)) {
+                ring = true
+            }
         }
-        .accessibilityLabel("Magic loading")
+        .accessibilityLabel("Magic")
     }
 }

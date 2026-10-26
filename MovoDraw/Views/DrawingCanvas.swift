@@ -29,9 +29,10 @@ final class DoodleCanvasView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = .white
+        // Warm paper (matches MDColor.paper)
+        backgroundColor = UIColor(red: 1.0, green: 0.99, blue: 0.97, alpha: 1)
         isMultipleTouchEnabled = false
-        layer.cornerRadius = 32
+        layer.cornerRadius = 36
         layer.masksToBounds = true
     }
 
@@ -108,7 +109,7 @@ final class DoodleCanvasView: UIView {
         format.opaque = true
         let renderer = UIGraphicsImageRenderer(bounds: exportBounds, format: format)
         return renderer.image { ctx in
-            UIColor.white.setFill()
+            UIColor(red: 1.0, green: 0.99, blue: 0.97, alpha: 1).setFill()
             ctx.fill(exportBounds)
             drawInk(in: ctx.cgContext)
         }
