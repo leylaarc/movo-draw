@@ -1,0 +1,387 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		066B00EF3E2F3B3F6EF0B232 /* DoodleAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B01087A6723D8E0AD68DAB /* DoodleAnalysis.swift */; };
+		0D86B9AC81ABEDFF40D2FD1F /* MagicLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C4BAC997996D4AAF9C37BBE /* MagicLoadingView.swift */; };
+		0D9D9266384FB6767190374C /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6F4680CF97A8069F2ECE2E /* DesignSystem.swift */; };
+		13E03B09560F735550D88FE6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9AADCC08E4E4CA7D78649D9D /* Assets.xcassets */; };
+		3440978367462F7445B5F7C6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC041DEDD1B6688A3C365A1 /* ContentView.swift */; };
+		62C54580E5BEE63F63A89F5F /* SafetyFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A22EA32140E4121A55C4DEEB /* SafetyFilter.swift */; };
+		6F0446A6F24F5E42FD8FB2D7 /* DrawingCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43ADD3B557A1C1FD48C5B406 /* DrawingCanvas.swift */; };
+		91CAAB805F61C55E97AF3021 /* DoodleAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABAE15E41070D2E9BF3323A2 /* DoodleAnalyzer.swift */; };
+		CAB28E972D4F95EBFF579878 /* LivingDoodleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7549FBFA53FF729C920C91A3 /* LivingDoodleView.swift */; };
+		CC4BB10913FE11DCC343EA02 /* MovoDrawApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B57E834136FA8C3FACDB31FB /* MovoDrawApp.swift */; };
+		E4A8E5D872B851C83289B1AC /* LifeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B44BA3B34700D708F79B22F /* LifeService.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		43ADD3B557A1C1FD48C5B406 /* DrawingCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawingCanvas.swift; sourceTree = "<group>"; };
+		5B44BA3B34700D708F79B22F /* LifeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeService.swift; sourceTree = "<group>"; };
+		6A6F4680CF97A8069F2ECE2E /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		6BA460962144EF8D3C4D2861 /* MovoDraw.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MovoDraw.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6C4BAC997996D4AAF9C37BBE /* MagicLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagicLoadingView.swift; sourceTree = "<group>"; };
+		7549FBFA53FF729C920C91A3 /* LivingDoodleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivingDoodleView.swift; sourceTree = "<group>"; };
+		7CC041DEDD1B6688A3C365A1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		9AADCC08E4E4CA7D78649D9D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A22EA32140E4121A55C4DEEB /* SafetyFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyFilter.swift; sourceTree = "<group>"; };
+		ABAE15E41070D2E9BF3323A2 /* DoodleAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoodleAnalyzer.swift; sourceTree = "<group>"; };
+		B57E834136FA8C3FACDB31FB /* MovoDrawApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovoDrawApp.swift; sourceTree = "<group>"; };
+		C9B01087A6723D8E0AD68DAB /* DoodleAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoodleAnalysis.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		17A96DB32A0ACE808DB28BE9 /* MovoDraw */ = {
+			isa = PBXGroup;
+			children = (
+				9AADCC08E4E4CA7D78649D9D /* Assets.xcassets */,
+				7CC041DEDD1B6688A3C365A1 /* ContentView.swift */,
+				B57E834136FA8C3FACDB31FB /* MovoDrawApp.swift */,
+				2F77A20804AB7BC68883A005 /* Models */,
+				706EDD95DF54A5EB892E5574 /* Services */,
+				C39EACFA16D2ED6F87B4C3EC /* Theme */,
+				FB0DE385189CBBE023BF17E9 /* Views */,
+			);
+			path = MovoDraw;
+			sourceTree = "<group>";
+		};
+		2F77A20804AB7BC68883A005 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				C9B01087A6723D8E0AD68DAB /* DoodleAnalysis.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		706EDD95DF54A5EB892E5574 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				ABAE15E41070D2E9BF3323A2 /* DoodleAnalyzer.swift */,
+				5B44BA3B34700D708F79B22F /* LifeService.swift */,
+				A22EA32140E4121A55C4DEEB /* SafetyFilter.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		79BCF33923C9A0F9514B471B = {
+			isa = PBXGroup;
+			children = (
+				17A96DB32A0ACE808DB28BE9 /* MovoDraw */,
+				EA07A427304B9F70BB16C9F1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C39EACFA16D2ED6F87B4C3EC /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				6A6F4680CF97A8069F2ECE2E /* DesignSystem.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		EA07A427304B9F70BB16C9F1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6BA460962144EF8D3C4D2861 /* MovoDraw.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FB0DE385189CBBE023BF17E9 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				43ADD3B557A1C1FD48C5B406 /* DrawingCanvas.swift */,
+				7549FBFA53FF729C920C91A3 /* LivingDoodleView.swift */,
+				6C4BAC997996D4AAF9C37BBE /* MagicLoadingView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		69380FAC2836C6149FA11D2E /* MovoDraw */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D361ED6ECF172B55DBAB547C /* Build configuration list for PBXNativeTarget "MovoDraw" */;
+			buildPhases = (
+				3E39BE7D2C02E6B75FE31ABF /* Sources */,
+				4299126A29B35E6CD08D69AA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MovoDraw;
+			packageProductDependencies = (
+			);
+			productName = MovoDraw;
+			productReference = 6BA460962144EF8D3C4D2861 /* MovoDraw.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C96B6318956DC8AB199FBF6E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					69380FAC2836C6149FA11D2E = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 19812818433F9C1682266C3F /* Build configuration list for PBXProject "MovoDraw" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 79BCF33923C9A0F9514B471B;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = EA07A427304B9F70BB16C9F1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				69380FAC2836C6149FA11D2E /* MovoDraw */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4299126A29B35E6CD08D69AA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				13E03B09560F735550D88FE6 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3E39BE7D2C02E6B75FE31ABF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3440978367462F7445B5F7C6 /* ContentView.swift in Sources */,
+				0D9D9266384FB6767190374C /* DesignSystem.swift in Sources */,
+				066B00EF3E2F3B3F6EF0B232 /* DoodleAnalysis.swift in Sources */,
+				91CAAB805F61C55E97AF3021 /* DoodleAnalyzer.swift in Sources */,
+				6F0446A6F24F5E42FD8FB2D7 /* DrawingCanvas.swift in Sources */,
+				E4A8E5D872B851C83289B1AC /* LifeService.swift in Sources */,
+				CAB28E972D4F95EBFF579878 /* LivingDoodleView.swift in Sources */,
+				0D86B9AC81ABEDFF40D2FD1F /* MagicLoadingView.swift in Sources */,
+				CC4BB10913FE11DCC343EA02 /* MovoDrawApp.swift in Sources */,
+				62C54580E5BEE63F63A89F5F /* SafetyFilter.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		19845F18B690B13706D4474E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		639D70558A08E65BD870D750 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AC2FE86C700A404DB19401D6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Movo Draw";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.movodraw.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D45E094EDEF94BF196235684 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Movo Draw";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.movodraw.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		19812818433F9C1682266C3F /* Build configuration list for PBXProject "MovoDraw" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				639D70558A08E65BD870D750 /* Debug */,
+				19845F18B690B13706D4474E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D361ED6ECF172B55DBAB547C /* Build configuration list for PBXNativeTarget "MovoDraw" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC2FE86C700A404DB19401D6 /* Debug */,
+				D45E094EDEF94BF196235684 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C96B6318956DC8AB199FBF6E /* Project object */;
+}
