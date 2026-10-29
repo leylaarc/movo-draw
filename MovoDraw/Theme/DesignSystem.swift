@@ -215,7 +215,7 @@ struct CrayonSwatch: View {
     }
 }
 
-/// Huge stroke-type icon (pen / marker / crayon / eraser).
+/// Huge stroke-type control with icon + kid label.
 struct StrokeStyleButton: View {
     let style: StrokeStyle
     let selected: Bool
@@ -227,22 +227,28 @@ struct StrokeStyleButton: View {
                 action()
             }
         }) {
-            Image(systemName: style.systemImage)
-                .font(.system(size: 22, weight: .bold))
-                .foregroundStyle(selected ? Color.white : MDColor.inkSoft)
-                .frame(width: MDLayout.strokeTool, height: MDLayout.strokeTool)
-                .background(
-                    Circle()
-                        .fill(selected ? MDColor.life : MDColor.paper.opacity(0.92))
-                )
-                .overlay(
-                    Circle()
-                        .strokeBorder(
-                            selected ? MDColor.life.opacity(0.4) : MDColor.ink.opacity(0.08),
-                            lineWidth: 2
-                        )
-                )
-                .scaleEffect(selected ? 1.08 : 1)
+            VStack(spacing: 4) {
+                Image(systemName: style.systemImage)
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(selected ? Color.white : MDColor.inkSoft)
+                    .frame(width: MDLayout.strokeTool, height: MDLayout.strokeTool)
+                    .background(
+                        Circle()
+                            .fill(selected ? MDColor.life : MDColor.paper.opacity(0.92))
+                    )
+                    .overlay(
+                        Circle()
+                            .strokeBorder(
+                                selected ? MDColor.life.opacity(0.4) : MDColor.ink.opacity(0.08),
+                                lineWidth: 2
+                            )
+                    )
+                Text(style.label)
+                    .font(MDType.label(11))
+                    .foregroundStyle(selected ? MDColor.ink : MDColor.inkSoft)
+                    .lineLimit(1)
+            }
+            .scaleEffect(selected ? 1.06 : 1)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(style.label)
@@ -368,19 +374,35 @@ struct MoreColorsButton: View {
 
     var body: some View {
         Button(action: action) {
-            ZStack {
-                Circle()
-                    .fill(MDColor.paper.opacity(0.95))
-                    .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
-                Image(systemName: "plus")
-                    .font(.system(size: 22, weight: .bold))
+            VStack(spacing: 4) {
+                ZStack {
+                    // Mini rainbow ring so kids know “more crayons” lives here
+                    Circle()
+                        .fill(
+                            AngularGradient(
+                                colors: [
+                                    Color(red: 1, green: 0.35, blue: 0.4),
+                                    Color(red: 1, green: 0.75, blue: 0.2),
+                                    Color(red: 0.3, green: 0.85, blue: 0.45),
+                                    Color(red: 0.3, green: 0.55, blue: 1),
+                                    Color(red: 0.7, green: 0.4, blue: 0.95),
+                                    Color(red: 1, green: 0.35, blue: 0.4)
+                                ],
+                                center: .center
+                            )
+                        )
+                        .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
+                    Circle()
+                        .fill(MDColor.paper)
+                        .frame(width: MDLayout.colorSwatch - 14, height: MDLayout.colorSwatch - 14)
+                    Image(systemName: "plus")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(MDColor.inkSoft)
+                }
+                Text("More")
+                    .font(MDType.label(11))
                     .foregroundStyle(MDColor.inkSoft)
             }
-            .overlay(
-                Circle()
-                    .strokeBorder(MDColor.ink.opacity(0.12), lineWidth: 2)
-                    .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
-            )
         }
         .buttonStyle(.plain)
         .accessibilityLabel("More colors")
@@ -397,15 +419,17 @@ struct TrayToggleButton: View {
                 action()
             }
         }) {
-            HStack(spacing: 6) {
-                Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 18, weight: .bold))
+            HStack(spacing: 8) {
+                Image(systemName: "circle.lefthalf.filled")
+                    .font(.system(size: 16, weight: .bold))
+                Text(expanded ? "Hide looks" : "Size & soft")
+                    .font(MDType.label(14))
                 Image(systemName: expanded ? "chevron.down" : "chevron.up")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: 11, weight: .bold))
             }
             .foregroundStyle(MDColor.tool)
-            .padding(.horizontal, 16)
-            .frame(height: MDLayout.strokeTool)
+            .padding(.horizontal, 14)
+            .frame(height: 48)
             .background(
                 Capsule()
                     .fill(MDColor.paper.opacity(0.92))
@@ -416,6 +440,161 @@ struct TrayToggleButton: View {
             )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(expanded ? "Hide size and opacity" : "Show size and opacity")
+        .accessibilityLabel(expanded ? "Hide size and softness" : "Show size and softness")
+    }
+}
+
+/// Tiny section label for the tools tray — quiet, not chrome-y.
+struct TraySectionLabel: View {
+    let title: String
+
+    var body: some View {
+        Text(title)
+            .font(MDType.label(13))
+            .foregroundStyle(MDColor.inkSoft)
+            .textCase(.none)
+    }
+}
+
+/// Named crayon in the More sheet — swatch + readable name (single button).
+struct NamedCrayonSwatch: View {
+    let crayon: CrayonColor
+    let selected: Bool
+    let action: () -> Void
+
+    private let size: CGFloat = 58
+
+    var body: some View {
+        Button(action: {
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.55)) {
+                action()
+            }
+        }) {
+            VStack(spacing: 8) {
+                ZStack {
+                    Circle()
+                        .fill(Color(crayon.color))
+                        .frame(width: size, height: size)
+                        .overlay(
+                            Circle()
+                                .strokeBorder(MDColor.ink.opacity(0.12), lineWidth: 1)
+                        )
+                    if selected {
+                        Circle()
+                            .strokeBorder(MDColor.paper, lineWidth: 4)
+                            .frame(width: size - 2, height: size - 2)
+                        Circle()
+                            .strokeBorder(MDColor.ink.opacity(0.35), lineWidth: 2)
+                            .frame(width: size + 6, height: size + 6)
+                    }
+                }
+                .scaleEffect(selected ? 1.08 : 1)
+                Text(crayon.name)
+                    .font(MDType.label(12))
+                    .foregroundStyle(selected ? MDColor.ink : MDColor.inkSoft)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(crayon.name)
+    }
+}
+
+/// Fat-finger color picker — rainbow ring + system spectrum wheel.
+struct KidColorPicker: View {
+    @Binding var color: Color
+    var onChange: ((Color) -> Void)? = nil
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(
+                    AngularGradient(
+                        colors: [
+                            Color(red: 1, green: 0.2, blue: 0.3),
+                            Color(red: 1, green: 0.7, blue: 0.1),
+                            Color(red: 0.25, green: 0.85, blue: 0.35),
+                            Color(red: 0.2, green: 0.55, blue: 1),
+                            Color(red: 0.65, green: 0.3, blue: 0.95),
+                            Color(red: 1, green: 0.2, blue: 0.3)
+                        ],
+                        center: .center
+                    )
+                )
+                .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
+
+            Circle()
+                .fill(color)
+                .frame(width: MDLayout.colorSwatch - 16, height: MDLayout.colorSwatch - 16)
+                .overlay(
+                    Circle()
+                        .strokeBorder(MDColor.paper, lineWidth: 3)
+                )
+
+            // Invisible but tappable system picker over the whole control
+            ColorPicker("", selection: $color, supportsOpacity: false)
+                .labelsHidden()
+                .scaleEffect(1.6)
+                .opacity(0.02)
+                .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
+                .onChange(of: color) { _, newValue in
+                    onChange?(newValue)
+                }
+        }
+        .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
+        .accessibilityLabel("Pick any color")
+    }
+}
+
+/// Larger picker card for the crayon box sheet.
+struct MixYourOwnColorCard: View {
+    @Binding var color: Color
+    var onPicked: (Color) -> Void
+
+    var body: some View {
+        HStack(spacing: 16) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(MDColor.paper)
+                    .frame(width: 88, height: 88)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                            .strokeBorder(MDColor.ink.opacity(0.08), lineWidth: 2)
+                    )
+                Circle()
+                    .fill(color)
+                    .frame(width: 56, height: 56)
+                    .overlay(
+                        Circle()
+                            .strokeBorder(MDColor.ink.opacity(0.12), lineWidth: 1)
+                    )
+                ColorPicker("", selection: $color, supportsOpacity: false)
+                    .labelsHidden()
+                    .scaleEffect(2.2)
+                    .opacity(0.025)
+                    .frame(width: 88, height: 88)
+                    .onChange(of: color) { _, newValue in
+                        onPicked(newValue)
+                    }
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Mix your own")
+                    .font(MDType.title(20))
+                    .foregroundStyle(MDColor.ink)
+                Text("Tap to open the color wheel")
+                    .font(MDType.label(14))
+                    .foregroundStyle(MDColor.inkSoft)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(MDColor.paper.opacity(0.9))
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Mix your own color")
     }
 }

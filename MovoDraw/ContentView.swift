@@ -112,7 +112,7 @@ struct ContentView: View {
             .padding(.horizontal, MDLayout.screenPad)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Calm dock: crayons → stroke types → optional tray → undo/clear → CTA
+            // Calm dock: crayons (+ picker) → strokes → looks tray → undo/clear → CTA
             VStack(spacing: 12) {
                 colorBar
 
@@ -161,18 +161,27 @@ struct ContentView: View {
     private var colorBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 10) {
-                ForEach(Array(CrayonPalette.primary.enumerated()), id: \.offset) { _, item in
+                ForEach(CrayonPalette.primary) { crayon in
                     CrayonSwatch(
-                        color: Color(item.color),
-                        selected: tools.style != .eraser && colorsMatch(tools.color, item.color),
-                        name: item.name
+                        color: Color(crayon.color),
+                        selected: tools.style != .eraser && colorsMatch(tools.color, crayon.color),
+                        name: crayon.name
                     ) {
-                        tools.color = item.color
-                        if tools.style == .eraser {
-                            tools.style = .pen
-                        }
+                        tools.selectCrayon(crayon.color)
                     }
                 }
+
+                // System color wheel — any custom mix
+                VStack(spacing: 4) {
+                    KidColorPicker(color: Binding(
+                        get: { tools.pickerColor },
+                        set: { tools.applyPickerColor($0) }
+                    ))
+                    Text("Mix")
+                        .font(MDType.label(11))
+                        .foregroundStyle(MDColor.inkSoft)
+                }
+
                 MoreColorsButton {
                     tools.showMoreColors = true
                 }
@@ -183,7 +192,7 @@ struct ContentView: View {
     }
 
     private var strokeTypeRow: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             ForEach(StrokeStyle.allCases) { style in
                 StrokeStyleButton(
                     style: style,
@@ -197,8 +206,8 @@ struct ContentView: View {
     }
 
     private var toolsTray: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            // Size with live tip previews
+        VStack(alignment: .leading, spacing: 12) {
+            TraySectionLabel(title: "Size")
             HStack(spacing: 10) {
                 ForEach(PenSize.allCases) { size in
                     PenSizeChip(
@@ -213,7 +222,7 @@ struct ContentView: View {
                 Spacer(minLength: 0)
             }
 
-            // Opacity presets
+            TraySectionLabel(title: "Softness")
             HStack(spacing: 12) {
                 ForEach(OpacityPreset.allCases) { preset in
                     OpacityChip(
@@ -357,37 +366,48 @@ private struct MoreColorsSheet: View {
     @ObservedObject var tools: DrawingToolState
     @Environment(\.dismiss) private var dismiss
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 4)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 14), count: 4)
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("More crayons")
-                    .font(MDType.brand(28))
-                    .foregroundStyle(MDColor.ink)
-                    .padding(.horizontal, 4)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    Text("Crayon box")
+                        .font(MDType.brand(28))
+                        .foregroundStyle(MDColor.ink)
 
-                ScrollView {
-                    LazyVGrid(columns: columns, spacing: 18) {
-                        ForEach(Array(CrayonPalette.more.enumerated()), id: \.offset) { _, item in
-                            CrayonSwatch(
-                                color: Color(item.color),
-                                selected: tools.style != .eraser && colorsMatch(tools.color, item.color),
-                                name: item.name,
-                                size: 64
-                            ) {
-                                tools.color = item.color
-                                if tools.style == .eraser {
-                                    tools.style = .pen
+                    MixYourOwnColorCard(
+                        color: Binding(
+                            get: { tools.pickerColor },
+                            set: { tools.applyPickerColor($0) }
+                        )
+                    ) { picked in
+                        tools.applyPickerColor(picked)
+                    }
+
+                    ForEach(CrayonPalette.sections) { section in
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(section.title)
+                                .font(MDType.title(18))
+                                .foregroundStyle(MDColor.inkSoft)
+
+                            LazyVGrid(columns: columns, spacing: 16) {
+                                ForEach(section.crayons) { crayon in
+                                    NamedCrayonSwatch(
+                                        crayon: crayon,
+                                        selected: tools.style != .eraser
+                                            && colorsMatch(tools.color, crayon.color)
+                                    ) {
+                                        tools.selectCrayon(crayon.color)
+                                        dismiss()
+                                    }
                                 }
-                                dismiss()
                             }
                         }
                     }
-                    .padding(.vertical, 8)
                 }
+                .padding(22)
             }
-            .padding(22)
             .background(MDColor.mist.ignoresSafeArea())
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
