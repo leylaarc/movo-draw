@@ -9,8 +9,8 @@ enum AppScreen {
 
 struct ContentView: View {
     @StateObject private var canvas = CanvasController()
+    @StateObject private var tools = DrawingToolState()
     @State private var screen: AppScreen = .draw
-    @State private var selectedUIColor: UIColor = .black
     @State private var result: LifeResult?
     @State private var errorMessage: String?
     @State private var showEmptyHint = false
@@ -20,16 +20,6 @@ struct ContentView: View {
     private var shouldAutoDemo: Bool {
         ProcessInfo.processInfo.arguments.contains("-DemoDragon")
     }
-
-    private let palette: [(name: String, color: UIColor)] = [
-        ("Black", .black),
-        ("Red", UIColor(red: 0.92, green: 0.22, blue: 0.28, alpha: 1)),
-        ("Blue", UIColor(red: 0.22, green: 0.48, blue: 0.95, alpha: 1)),
-        ("Yellow", UIColor(red: 1.0, green: 0.82, blue: 0.18, alpha: 1)),
-        ("Green", UIColor(red: 0.22, green: 0.72, blue: 0.42, alpha: 1)),
-        ("Purple", UIColor(red: 0.55, green: 0.38, blue: 0.92, alpha: 1)),
-        ("Orange", UIColor(red: 1.0, green: 0.52, blue: 0.18, alpha: 1))
-    ]
 
     private let lifeService: any LifeService = LifeServiceFactory.make()
 
@@ -71,6 +61,11 @@ struct ContentView: View {
         } message: {
             Text(errorMessage ?? "")
         }
+        .sheet(isPresented: $tools.showMoreColors) {
+            MoreColorsSheet(tools: tools)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
         .task {
             guard shouldAutoDemo, !didAutoDemo else { return }
             didAutoDemo = true
@@ -89,16 +84,24 @@ struct ContentView: View {
             HStack(alignment: .top) {
                 MovoBrandMark(size: 46)
                 Spacer()
+                TipPreview(
+                    color: Color(tools.color),
+                    size: tools.size,
+                    opacity: tools.opacityValue,
+                    style: tools.style
+                )
             }
             .padding(.horizontal, MDLayout.screenPad)
             .padding(.top, 10)
-            .padding(.bottom, 14)
+            .padding(.bottom, 10)
 
-            // Paper plane — the drawing surface, not a “card”
+            // Paper plane — the drawing surface stays dominant
             DoodleCanvasRepresentable(
                 controller: canvas,
-                color: selectedUIColor,
-                lineWidth: MDLayout.brushWidth
+                color: tools.color,
+                lineWidth: tools.lineWidth,
+                opacity: tools.opacityValue,
+                style: tools.style
             )
             .background(MDColor.paper)
             .clipShape(RoundedRectangle(cornerRadius: MDLayout.corner, style: .continuous))
@@ -109,9 +112,16 @@ struct ContentView: View {
             .padding(.horizontal, MDLayout.screenPad)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Calm dock: crayons → quiet tools → one full-width CTA
-            VStack(spacing: 16) {
+            // Calm dock: crayons → stroke types → optional tray → undo/clear → CTA
+            VStack(spacing: 12) {
                 colorBar
+
+                strokeTypeRow
+
+                if tools.trayExpanded {
+                    toolsTray
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
 
                 HStack(spacing: 14) {
                     KidToolButton(
@@ -127,6 +137,10 @@ struct ContentView: View {
                     ) { canvas.clear() }
 
                     Spacer(minLength: 0)
+
+                    TrayToggleButton(expanded: tools.trayExpanded) {
+                        tools.trayExpanded.toggle()
+                    }
                 }
 
                 KidPrimaryButton(
@@ -138,28 +152,91 @@ struct ContentView: View {
                 }
             }
             .padding(.horizontal, MDLayout.screenPad)
-            .padding(.top, 16)
+            .padding(.top, 12)
             .padding(.bottom, 14)
+            .animation(.spring(response: 0.4, dampingFraction: 0.84), value: tools.trayExpanded)
         }
     }
 
     private var colorBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(Array(palette.enumerated()), id: \.offset) { _, item in
+            HStack(spacing: 10) {
+                ForEach(Array(CrayonPalette.primary.enumerated()), id: \.offset) { _, item in
                     CrayonSwatch(
                         color: Color(item.color),
-                        selected: colorsMatch(selectedUIColor, item.color),
+                        selected: tools.style != .eraser && colorsMatch(tools.color, item.color),
                         name: item.name
                     ) {
-                        selectedUIColor = item.color
+                        tools.color = item.color
+                        if tools.style == .eraser {
+                            tools.style = .pen
+                        }
                     }
+                }
+                MoreColorsButton {
+                    tools.showMoreColors = true
                 }
             }
             .padding(.horizontal, 4)
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
         }
+    }
+
+    private var strokeTypeRow: some View {
+        HStack(spacing: 12) {
+            ForEach(StrokeStyle.allCases) { style in
+                StrokeStyleButton(
+                    style: style,
+                    selected: tools.style == style
+                ) {
+                    tools.style = style
+                }
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var toolsTray: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            // Size with live tip previews
+            HStack(spacing: 10) {
+                ForEach(PenSize.allCases) { size in
+                    PenSizeChip(
+                        size: size,
+                        color: Color(tools.color),
+                        opacity: tools.opacityValue,
+                        selected: tools.size == size
+                    ) {
+                        tools.size = size
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+
+            // Opacity presets
+            HStack(spacing: 12) {
+                ForEach(OpacityPreset.allCases) { preset in
+                    OpacityChip(
+                        preset: preset,
+                        color: Color(tools.color),
+                        selected: tools.opacity == preset
+                    ) {
+                        tools.opacity = preset
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 14)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(MDColor.paper.opacity(0.72))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .strokeBorder(MDColor.ink.opacity(0.06), lineWidth: 1)
+        )
     }
 
     // MARK: - Alive (one job: show the result)
@@ -173,7 +250,7 @@ struct ContentView: View {
                         .font(MDType.brand(40))
                         .foregroundStyle(MDColor.ink)
                     if result.isFallback {
-                        Text("Add FAL_KEY for real magic")
+                        Text("Ask a grown-up to turn on picture magic")
                             .font(MDType.label(15))
                             .foregroundStyle(MDColor.inkSoft)
                     }
@@ -271,6 +348,63 @@ struct ContentView: View {
             self.errorMessage = error.localizedDescription
             self.screen = .draw
         }
+    }
+}
+
+// MARK: - More colors sheet
+
+private struct MoreColorsSheet: View {
+    @ObservedObject var tools: DrawingToolState
+    @Environment(\.dismiss) private var dismiss
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 4)
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("More crayons")
+                    .font(MDType.brand(28))
+                    .foregroundStyle(MDColor.ink)
+                    .padding(.horizontal, 4)
+
+                ScrollView {
+                    LazyVGrid(columns: columns, spacing: 18) {
+                        ForEach(Array(CrayonPalette.more.enumerated()), id: \.offset) { _, item in
+                            CrayonSwatch(
+                                color: Color(item.color),
+                                selected: tools.style != .eraser && colorsMatch(tools.color, item.color),
+                                name: item.name,
+                                size: 64
+                            ) {
+                                tools.color = item.color
+                                if tools.style == .eraser {
+                                    tools.style = .pen
+                                }
+                                dismiss()
+                            }
+                        }
+                    }
+                    .padding(.vertical, 8)
+                }
+            }
+            .padding(22)
+            .background(MDColor.mist.ignoresSafeArea())
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .font(MDType.body(17))
+                        .foregroundStyle(MDColor.life)
+                }
+            }
+        }
+    }
+
+    private func colorsMatch(_ a: UIColor, _ b: UIColor) -> Bool {
+        var ar: CGFloat = 0, ag: CGFloat = 0, ab: CGFloat = 0, aa: CGFloat = 0
+        var br: CGFloat = 0, bg: CGFloat = 0, bb: CGFloat = 0, ba: CGFloat = 0
+        a.getRed(&ar, green: &ag, blue: &ab, alpha: &aa)
+        b.getRed(&br, green: &bg, blue: &bb, alpha: &ba)
+        return abs(ar - br) < 0.01 && abs(ag - bg) < 0.01 && abs(ab - bb) < 0.01
     }
 }
 

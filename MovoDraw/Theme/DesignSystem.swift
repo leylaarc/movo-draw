@@ -53,8 +53,9 @@ enum MDType {
 
 enum MDLayout {
     static let bigButton: CGFloat = 76
-    static let colorSwatch: CGFloat = 58
+    static let colorSwatch: CGFloat = 52
     static let toolButton: CGFloat = 64
+    static let strokeTool: CGFloat = 56
     static let corner: CGFloat = 36
     static let brushWidth: CGFloat = 16
     static let screenPad: CGFloat = 22
@@ -180,6 +181,7 @@ struct CrayonSwatch: View {
     let color: Color
     let selected: Bool
     let name: String
+    var size: CGFloat = MDLayout.colorSwatch
     let action: () -> Void
 
     var body: some View {
@@ -191,19 +193,229 @@ struct CrayonSwatch: View {
             ZStack {
                 Circle()
                     .fill(color)
-                    .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
+                    .frame(width: size, height: size)
+                    .overlay(
+                        // Edge for light crayons (white / cream) so they read on paper
+                        Circle()
+                            .strokeBorder(MDColor.ink.opacity(0.12), lineWidth: 1)
+                    )
                 if selected {
                     Circle()
                         .strokeBorder(MDColor.paper, lineWidth: 4)
-                        .frame(width: MDLayout.colorSwatch - 2, height: MDLayout.colorSwatch - 2)
+                        .frame(width: size - 2, height: size - 2)
                     Circle()
                         .strokeBorder(MDColor.ink.opacity(0.35), lineWidth: 2)
-                        .frame(width: MDLayout.colorSwatch + 6, height: MDLayout.colorSwatch + 6)
+                        .frame(width: size + 6, height: size + 6)
                 }
             }
             .scaleEffect(selected ? 1.12 : 1.0)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(name)
+    }
+}
+
+/// Huge stroke-type icon (pen / marker / crayon / eraser).
+struct StrokeStyleButton: View {
+    let style: StrokeStyle
+    let selected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: {
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.55)) {
+                action()
+            }
+        }) {
+            Image(systemName: style.systemImage)
+                .font(.system(size: 22, weight: .bold))
+                .foregroundStyle(selected ? Color.white : MDColor.inkSoft)
+                .frame(width: MDLayout.strokeTool, height: MDLayout.strokeTool)
+                .background(
+                    Circle()
+                        .fill(selected ? MDColor.life : MDColor.paper.opacity(0.92))
+                )
+                .overlay(
+                    Circle()
+                        .strokeBorder(
+                            selected ? MDColor.life.opacity(0.4) : MDColor.ink.opacity(0.08),
+                            lineWidth: 2
+                        )
+                )
+                .scaleEffect(selected ? 1.08 : 1)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(style.label)
+    }
+}
+
+/// Size chip with live tip preview circle.
+struct PenSizeChip: View {
+    let size: PenSize
+    let color: Color
+    let opacity: CGFloat
+    let selected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: {
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.55)) {
+                action()
+            }
+        }) {
+            VStack(spacing: 6) {
+                ZStack {
+                    Circle()
+                        .fill(MDColor.paper)
+                        .frame(width: 52, height: 52)
+                        .overlay(
+                            Circle()
+                                .strokeBorder(
+                                    selected ? MDColor.life : MDColor.ink.opacity(0.1),
+                                    lineWidth: selected ? 3 : 2
+                                )
+                        )
+                    Circle()
+                        .fill(color.opacity(opacity))
+                        .frame(
+                            width: min(size.width * 0.85, 36),
+                            height: min(size.width * 0.85, 36)
+                        )
+                }
+                Text(size.label)
+                    .font(MDType.label(12))
+                    .foregroundStyle(selected ? MDColor.ink : MDColor.inkSoft)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(size.label)
+    }
+}
+
+struct OpacityChip: View {
+    let preset: OpacityPreset
+    let color: Color
+    let selected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: {
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.55)) {
+                action()
+            }
+        }) {
+            VStack(spacing: 6) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(MDColor.paper)
+                        .frame(width: 64, height: 44)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(
+                                    selected ? MDColor.life : MDColor.ink.opacity(0.1),
+                                    lineWidth: selected ? 3 : 2
+                                )
+                        )
+                    Capsule()
+                        .fill(color.opacity(preset.value))
+                        .frame(width: 36, height: 14)
+                }
+                Text(preset.label)
+                    .font(MDType.label(12))
+                    .foregroundStyle(selected ? MDColor.ink : MDColor.inkSoft)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(preset.label)
+    }
+}
+
+/// Live tip preview — shows current color, size, and opacity together.
+struct TipPreview: View {
+    let color: Color
+    let size: PenSize
+    let opacity: CGFloat
+    let style: StrokeStyle
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(MDColor.paper.opacity(0.95))
+                .frame(width: 72, height: 56)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .strokeBorder(MDColor.ink.opacity(0.08), lineWidth: 2)
+                )
+            if style == .eraser {
+                Image(systemName: "eraser")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(MDColor.inkSoft)
+            } else {
+                Circle()
+                    .fill(color.opacity(opacity))
+                    .frame(
+                        width: min(size.width * 0.9, 40),
+                        height: min(size.width * 0.9, 40)
+                    )
+            }
+        }
+        .accessibilityLabel("Tip preview")
+    }
+}
+
+struct MoreColorsButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(MDColor.paper.opacity(0.95))
+                    .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
+                Image(systemName: "plus")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(MDColor.inkSoft)
+            }
+            .overlay(
+                Circle()
+                    .strokeBorder(MDColor.ink.opacity(0.12), lineWidth: 2)
+                    .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("More colors")
+    }
+}
+
+struct TrayToggleButton: View {
+    let expanded: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                action()
+            }
+        }) {
+            HStack(spacing: 6) {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 18, weight: .bold))
+                Image(systemName: expanded ? "chevron.down" : "chevron.up")
+                    .font(.system(size: 12, weight: .bold))
+            }
+            .foregroundStyle(MDColor.tool)
+            .padding(.horizontal, 16)
+            .frame(height: MDLayout.strokeTool)
+            .background(
+                Capsule()
+                    .fill(MDColor.paper.opacity(0.92))
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(MDColor.tool.opacity(0.25), lineWidth: 2)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(expanded ? "Hide size and opacity" : "Show size and opacity")
     }
 }
