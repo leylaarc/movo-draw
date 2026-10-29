@@ -66,6 +66,11 @@ struct ContentView: View {
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $tools.showColorMixer) {
+            ColorMixerSheet(tools: tools)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+        }
         .task {
             guard shouldAutoDemo, !didAutoDemo else { return }
             didAutoDemo = true
@@ -112,7 +117,7 @@ struct ContentView: View {
             .padding(.horizontal, MDLayout.screenPad)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Calm dock: crayons (+ picker) → strokes → looks tray → undo/clear → CTA
+            // Calm dock: colors (+ mix) → strokes → looks tray → undo/clear → CTA
             VStack(spacing: 12) {
                 colorBar
 
@@ -159,36 +164,32 @@ struct ContentView: View {
     }
 
     private var colorBar: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {
-                ForEach(CrayonPalette.primary) { crayon in
-                    CrayonSwatch(
-                        color: Color(crayon.color),
-                        selected: tools.style != .eraser && colorsMatch(tools.color, crayon.color),
-                        name: crayon.name
-                    ) {
-                        tools.selectCrayon(crayon.color)
+        // Mix + Colors stay pinned so kids never have to scroll to find them.
+        HStack(spacing: 10) {
+            MixColorButton(current: Color(tools.color)) {
+                tools.showColorMixer = true
+            }
+
+            MoreColorsButton {
+                tools.showMoreColors = true
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(CrayonPalette.primary) { swatch in
+                        CrayonSwatch(
+                            color: Color(swatch.color),
+                            selected: tools.style != .eraser && colorsMatch(tools.color, swatch.color),
+                            name: swatch.name
+                        ) {
+                            tools.selectCrayon(swatch.color)
+                        }
                     }
                 }
-
-                // System color wheel — any custom mix
-                VStack(spacing: 4) {
-                    KidColorPicker(color: Binding(
-                        get: { tools.pickerColor },
-                        set: { tools.applyPickerColor($0) }
-                    ))
-                    Text("Mix")
-                        .font(MDType.label(11))
-                        .foregroundStyle(MDColor.inkSoft)
-                }
-
-                MoreColorsButton {
-                    tools.showMoreColors = true
-                }
+                .padding(.vertical, 6)
             }
-            .padding(.horizontal, 4)
-            .padding(.vertical, 6)
         }
+        .padding(.horizontal, 2)
     }
 
     private var strokeTypeRow: some View {
@@ -360,6 +361,57 @@ struct ContentView: View {
     }
 }
 
+// MARK: - Mix your own (dedicated sheet with a real ColorPicker)
+
+private struct ColorMixerSheet: View {
+    @ObservedObject var tools: DrawingToolState
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 20) {
+                MixYourOwnColorCard(
+                    color: Binding(
+                        get: { tools.pickerColor },
+                        set: { tools.applyPickerColor($0) }
+                    )
+                ) { picked in
+                    tools.applyPickerColor(picked)
+                }
+
+                Text("Tap the color circle, then choose any shade.")
+                    .font(MDType.label(15))
+                    .foregroundStyle(MDColor.inkSoft)
+
+                Spacer()
+
+                KidPrimaryButton(
+                    title: "Use This Color",
+                    systemImage: "checkmark",
+                    color: MDColor.life
+                ) {
+                    tools.applyPickerColor(tools.pickerColor)
+                    dismiss()
+                }
+            }
+            .padding(22)
+            .background(MDColor.mist.ignoresSafeArea())
+            .navigationTitle("Mix")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        tools.applyPickerColor(tools.pickerColor)
+                        dismiss()
+                    }
+                    .font(MDType.body(17))
+                    .foregroundStyle(MDColor.life)
+                }
+            }
+        }
+    }
+}
+
 // MARK: - More colors sheet
 
 private struct MoreColorsSheet: View {
@@ -372,18 +424,61 @@ private struct MoreColorsSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
-                    Text("Crayon box")
+                    Text("Colors")
                         .font(MDType.brand(28))
                         .foregroundStyle(MDColor.ink)
 
-                    MixYourOwnColorCard(
-                        color: Binding(
-                            get: { tools.pickerColor },
-                            set: { tools.applyPickerColor($0) }
+                    Button {
+                        dismiss()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            tools.showColorMixer = true
+                        }
+                    } label: {
+                        HStack(spacing: 14) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        AngularGradient(
+                                            colors: [
+                                                Color(red: 1, green: 0.2, blue: 0.3),
+                                                Color(red: 1, green: 0.7, blue: 0.1),
+                                                Color(red: 0.25, green: 0.85, blue: 0.35),
+                                                Color(red: 0.2, green: 0.55, blue: 1),
+                                                Color(red: 0.65, green: 0.3, blue: 0.95),
+                                                Color(red: 1, green: 0.2, blue: 0.3)
+                                            ],
+                                            center: .center
+                                        )
+                                    )
+                                    .frame(width: 52, height: 52)
+                                Circle()
+                                    .fill(Color(tools.color))
+                                    .frame(width: 36, height: 36)
+                            }
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Mix your own")
+                                    .font(MDType.title(20))
+                                    .foregroundStyle(MDColor.ink)
+                                Text("Open the color wheel")
+                                    .font(MDType.label(14))
+                                    .foregroundStyle(MDColor.inkSoft)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundStyle(MDColor.inkSoft)
+                        }
+                        .padding(14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .fill(MDColor.paper.opacity(0.95))
                         )
-                    ) { picked in
-                        tools.applyPickerColor(picked)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .strokeBorder(MDColor.life.opacity(0.35), lineWidth: 2)
+                        )
                     }
+                    .buttonStyle(.plain)
 
                     ForEach(CrayonPalette.sections) { section in
                         VStack(alignment: .leading, spacing: 12) {
@@ -392,13 +487,13 @@ private struct MoreColorsSheet: View {
                                 .foregroundStyle(MDColor.inkSoft)
 
                             LazyVGrid(columns: columns, spacing: 16) {
-                                ForEach(section.crayons) { crayon in
+                                ForEach(section.crayons) { swatch in
                                     NamedCrayonSwatch(
-                                        crayon: crayon,
+                                        crayon: swatch,
                                         selected: tools.style != .eraser
-                                            && colorsMatch(tools.color, crayon.color)
+                                            && colorsMatch(tools.color, swatch.color)
                                     ) {
-                                        tools.selectCrayon(crayon.color)
+                                        tools.selectCrayon(swatch.color)
                                         dismiss()
                                     }
                                 }

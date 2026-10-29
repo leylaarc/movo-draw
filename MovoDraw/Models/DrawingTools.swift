@@ -111,6 +111,7 @@ final class DrawingToolState: ObservableObject {
     /// Look tray (size + softness) starts open so specifics are obvious.
     @Published var trayExpanded = true
     @Published var showMoreColors = false
+    @Published var showColorMixer = false
 
     var lineWidth: CGFloat { size.width }
     var opacityValue: CGFloat { opacity.value }

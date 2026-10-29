@@ -46,7 +46,7 @@ If `FAL_KEY` is missing but `OPENAI_API_KEY` is set, the app uses **OpenAI Image
 
 ## Drawing tools
 
-- **Colors** — 10 dock crayons + **Mix** color picker (system wheel) + **More** crayon-box sheet (Bright / Soft / Skin / Earth / Neutrals)
+- **Colors** — pinned **Mix** (color wheel sheet) + **Colors** grid sheet (Bright / Soft / Skin / Earth / Neutrals) + scrollable dock swatches
 - **Stroke** — Pen · Marker · Crayon (textured) · Eraser (labeled icons)
 - **Size** — Thin / Medium / Thick / Jumbo with live tip preview
 - **Softness** — Soft / Medium / Bold opacity presets (collapsible “Size & soft” tray)

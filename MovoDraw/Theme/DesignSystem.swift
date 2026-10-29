@@ -376,36 +376,71 @@ struct MoreColorsButton: View {
         Button(action: action) {
             VStack(spacing: 4) {
                 ZStack {
-                    // Mini rainbow ring so kids know “more crayons” lives here
                     Circle()
-                        .fill(
-                            AngularGradient(
-                                colors: [
-                                    Color(red: 1, green: 0.35, blue: 0.4),
-                                    Color(red: 1, green: 0.75, blue: 0.2),
-                                    Color(red: 0.3, green: 0.85, blue: 0.45),
-                                    Color(red: 0.3, green: 0.55, blue: 1),
-                                    Color(red: 0.7, green: 0.4, blue: 0.95),
-                                    Color(red: 1, green: 0.35, blue: 0.4)
-                                ],
-                                center: .center
-                            )
-                        )
+                        .fill(MDColor.paper.opacity(0.95))
                         .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
-                    Circle()
-                        .fill(MDColor.paper)
-                        .frame(width: MDLayout.colorSwatch - 14, height: MDLayout.colorSwatch - 14)
-                    Image(systemName: "plus")
-                        .font(.system(size: 18, weight: .bold))
+                    Image(systemName: "circle.grid.3x3.fill")
+                        .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(MDColor.inkSoft)
                 }
-                Text("More")
+                .overlay(
+                    Circle()
+                        .strokeBorder(MDColor.ink.opacity(0.12), lineWidth: 2)
+                        .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
+                )
+                Text("Colors")
                     .font(MDType.label(11))
                     .foregroundStyle(MDColor.inkSoft)
             }
         }
         .buttonStyle(.plain)
         .accessibilityLabel("More colors")
+    }
+}
+
+/// Opens the Mix sheet — always visible, not a hidden ColorPicker overlay.
+struct MixColorButton: View {
+    let current: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            AngularGradient(
+                                colors: [
+                                    Color(red: 1, green: 0.2, blue: 0.3),
+                                    Color(red: 1, green: 0.7, blue: 0.1),
+                                    Color(red: 0.25, green: 0.85, blue: 0.35),
+                                    Color(red: 0.2, green: 0.55, blue: 1),
+                                    Color(red: 0.65, green: 0.3, blue: 0.95),
+                                    Color(red: 1, green: 0.2, blue: 0.3)
+                                ],
+                                center: .center
+                            )
+                        )
+                        .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
+                    Circle()
+                        .fill(current)
+                        .frame(width: MDLayout.colorSwatch - 16, height: MDLayout.colorSwatch - 16)
+                        .overlay(
+                            Circle()
+                                .strokeBorder(MDColor.paper, lineWidth: 3)
+                        )
+                    Image(systemName: "plus")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(MDColor.ink.opacity(0.55))
+                        .offset(x: 16, y: 16)
+                }
+                Text("Mix")
+                    .font(MDType.label(11))
+                    .foregroundStyle(MDColor.inkSoft)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Mix your own color")
     }
 }
 
@@ -501,100 +536,50 @@ struct NamedCrayonSwatch: View {
     }
 }
 
-/// Fat-finger color picker — rainbow ring + system spectrum wheel.
-struct KidColorPicker: View {
-    @Binding var color: Color
-    var onChange: ((Color) -> Void)? = nil
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(
-                    AngularGradient(
-                        colors: [
-                            Color(red: 1, green: 0.2, blue: 0.3),
-                            Color(red: 1, green: 0.7, blue: 0.1),
-                            Color(red: 0.25, green: 0.85, blue: 0.35),
-                            Color(red: 0.2, green: 0.55, blue: 1),
-                            Color(red: 0.65, green: 0.3, blue: 0.95),
-                            Color(red: 1, green: 0.2, blue: 0.3)
-                        ],
-                        center: .center
-                    )
-                )
-                .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
-
-            Circle()
-                .fill(color)
-                .frame(width: MDLayout.colorSwatch - 16, height: MDLayout.colorSwatch - 16)
-                .overlay(
-                    Circle()
-                        .strokeBorder(MDColor.paper, lineWidth: 3)
-                )
-
-            // Invisible but tappable system picker over the whole control
-            ColorPicker("", selection: $color, supportsOpacity: false)
-                .labelsHidden()
-                .scaleEffect(1.6)
-                .opacity(0.02)
-                .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
-                .onChange(of: color) { _, newValue in
-                    onChange?(newValue)
-                }
-        }
-        .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
-        .accessibilityLabel("Pick any color")
-    }
-}
-
-/// Larger picker card for the crayon box sheet.
+/// Big, fully visible system color picker for the Mix sheet.
 struct MixYourOwnColorCard: View {
     @Binding var color: Color
     var onPicked: (Color) -> Void
 
     var body: some View {
-        HStack(spacing: 16) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(MDColor.paper)
-                    .frame(width: 88, height: 88)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 22, style: .continuous)
-                            .strokeBorder(MDColor.ink.opacity(0.08), lineWidth: 2)
-                    )
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Mix your own")
+                .font(MDType.title(22))
+                .foregroundStyle(MDColor.ink)
+            Text("Pick any color")
+                .font(MDType.label(15))
+                .foregroundStyle(MDColor.inkSoft)
+
+            HStack(spacing: 16) {
                 Circle()
                     .fill(color)
-                    .frame(width: 56, height: 56)
+                    .frame(width: 64, height: 64)
                     .overlay(
                         Circle()
-                            .strokeBorder(MDColor.ink.opacity(0.12), lineWidth: 1)
+                            .strokeBorder(MDColor.ink.opacity(0.15), lineWidth: 2)
                     )
-                ColorPicker("", selection: $color, supportsOpacity: false)
+
+                ColorPicker("Color", selection: $color, supportsOpacity: false)
                     .labelsHidden()
-                    .scaleEffect(2.2)
-                    .opacity(0.025)
-                    .frame(width: 88, height: 88)
+                    .scaleEffect(1.35)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .onChange(of: color) { _, newValue in
                         onPicked(newValue)
                     }
             }
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Mix your own")
-                    .font(MDType.title(20))
-                    .foregroundStyle(MDColor.ink)
-                Text("Tap to open the color wheel")
-                    .font(MDType.label(14))
-                    .foregroundStyle(MDColor.inkSoft)
-            }
-            Spacer(minLength: 0)
+            .padding(.vertical, 4)
         }
-        .padding(14)
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(MDColor.paper.opacity(0.9))
+                .fill(MDColor.paper.opacity(0.95))
         )
-        .accessibilityElement(children: .combine)
+        .overlay(
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .strokeBorder(MDColor.life.opacity(0.35), lineWidth: 2)
+        )
+        .accessibilityElement(children: .contain)
         .accessibilityLabel("Mix your own color")
     }
 }
