@@ -368,12 +368,14 @@ private struct CheckerboardFill: View {
     }
 }
 
-/// Compact tip preview — shows current color, size, and opacity together.
+/// Compact tip preview — shows current color, size, opacity, and stroke type.
 struct TipPreview: View {
     let color: Color
     let size: PenSize
     let opacity: CGFloat
     let style: StrokeStyle
+
+    private var tip: CGFloat { min(max(size.width * 0.75, 3), 30) }
 
     var body: some View {
         ZStack {
@@ -384,17 +386,35 @@ struct TipPreview: View {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .strokeBorder(MDColor.ink.opacity(0.08), lineWidth: 2)
                 )
-            if style == .eraser {
+            switch style {
+            case .eraser:
                 Image(systemName: "eraser")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(MDColor.inkSoft)
-            } else {
+            case .marker:
+                // Flat highlighter ribbon
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    .fill(color.opacity(min(opacity, 1) * 0.4))
+                    .frame(width: tip * 1.5, height: tip * 0.7)
+            case .crayon:
+                // Speckled wax blob
+                ZStack {
+                    Circle()
+                        .fill(color.opacity(opacity * 0.55))
+                        .frame(width: tip, height: tip)
+                    Circle()
+                        .fill(color.opacity(opacity * 0.7))
+                        .frame(width: tip * 0.35, height: tip * 0.35)
+                        .offset(x: tip * 0.18, y: -tip * 0.12)
+                    Circle()
+                        .fill(color.opacity(opacity * 0.45))
+                        .frame(width: tip * 0.28, height: tip * 0.28)
+                        .offset(x: -tip * 0.16, y: tip * 0.14)
+                }
+            case .pen:
                 Circle()
                     .fill(color.opacity(opacity))
-                    .frame(
-                        width: min(size.width * 0.75, 30),
-                        height: min(size.width * 0.75, 30)
-                    )
+                    .frame(width: tip, height: tip)
             }
         }
         .accessibilityLabel("Tip preview")
