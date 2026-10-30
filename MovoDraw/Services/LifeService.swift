@@ -16,7 +16,7 @@ enum LifeServiceError: LocalizedError {
         switch self {
         case .emptyCanvas: return "Draw something first!"
         case .unsafeContent: return "Let's draw something friendly."
-        case .missingAPIKey: return "Add an API key to generate realistic images."
+        case .missingAPIKey: return "Picture magic isn’t set up yet. Ask a grown-up for help."
         case .remoteFailed(let msg): return msg
         }
     }
@@ -46,7 +46,7 @@ struct LocalDemoLifeService: LifeService {
             doodleImage: image,
             safetyNotes: [
                 "Offline fallback (no API key)",
-                "Set FAL_KEY for realistic image generation"
+                "Parent: set FAL_KEY in the Xcode scheme for realistic images"
             ]
         )
     }

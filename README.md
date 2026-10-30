@@ -2,7 +2,7 @@
 
 Kids doodle with their finger. Tap **Bring to Life** and AI turns the doodle into a **realistic, kid-safe image** that matches what they drew (black+red dragon doodle → realistic black+red dragon).
 
-Ages **2–12**. Huge buttons, thick brush, playful colors.
+Ages **2–12**. Huge buttons, playful colors, and a simple tools tray (size, marker, opacity).
 
 ## Open & run
 
@@ -44,13 +44,23 @@ If `FAL_KEY` is missing but `OPENAI_API_KEY` is set, the app uses **OpenAI Image
 
 > Production note: shipping a key inside a client app is unsafe. For App Store, proxy through your backend. Simulator / TestFlight MVP may use scheme env for convenience.
 
+## Drawing tools
+
+- **Tools menu** — color, type, size, and opacity live in one sheet so the canvas stays big
+- **Colors** — quick swatches + **More Colors** (gradient color wheel + Bright / Soft / Skin / Earth / Neutrals crayons)
+- **Draw tool** — always Marker (highlighter). Eraser lives on the dock next to Undo — no pen-type picker
+- **Size** — Fine / Tiny / Small / Medium / Large / X-Large / Huge
+- **Opacity** — continuous scale from Faint → Solid
+- Slim Draw dock: **Tools** · Undo · Clear · Bring to Life
+- Each stroke stores color, width, opacity, and style so undo / clear / export stay correct
+
 ## What works
 
 | Feature | Needs key? | Notes |
 |--------|------------|--------|
-| Draw canvas (colors, undo, clear) | No | Offline |
+| Draw canvas (colors, sizes, marker / eraser, opacity, undo, clear) | No | Offline; collapsible tray keeps canvas dominant |
 | Bring to Life → **realistic image** | **Yes** (`FAL_KEY` or `OPENAI_API_KEY`) | Primary result |
-| Offline fallback (SpriteKit flight) | No | Clearly labeled **Fallback** — secondary only |
+| Offline fallback (SpriteKit flight) | No | Clearly labeled **Offline** — secondary only |
 | Kid-safe prompt filter | Always | Blocks scary/violent/sexual terms; fal safety checker / OpenAI moderation |
 
 ## Why fal.ai FLUX Kontext

@@ -17,11 +17,15 @@ final class CanvasController: ObservableObject {
 /// UIKit-backed canvas for reliable fat-finger drawing + image export.
 final class DoodleCanvasView: UIView {
     var strokeColor: UIColor = .black
-    var lineWidth: CGFloat = MDLayout.brushWidth
+    var lineWidth: CGFloat = PenSize.medium.width
+    var strokeOpacity: CGFloat = 1
+    var strokeStyle: StrokeStyle = .marker
 
-    private var strokes: [(color: UIColor, width: CGFloat, points: [CGPoint])] = []
-    private var undone: [(color: UIColor, width: CGFloat, points: [CGPoint])] = []
+    private var strokes: [DoodleStroke] = []
+    private var undone: [DoodleStroke] = []
     private var currentPoints: [CGPoint] = []
+
+    private let paperUIColor = UIColor(red: 1.0, green: 0.99, blue: 0.97, alpha: 1)
 
     var hasInk: Bool {
         !strokes.isEmpty || currentPoints.count > 1
@@ -29,8 +33,7 @@ final class DoodleCanvasView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        // Warm paper (matches MDColor.paper)
-        backgroundColor = UIColor(red: 1.0, green: 0.99, blue: 0.97, alpha: 1)
+        backgroundColor = paperUIColor
         isMultipleTouchEnabled = false
         layer.cornerRadius = 36
         layer.masksToBounds = true
@@ -61,7 +64,7 @@ final class DoodleCanvasView: UIView {
         let h = max(bounds.height, 420)
         let black = UIColor.black
         let red = UIColor(red: 0.92, green: 0.18, blue: 0.22, alpha: 1)
-        let thick: CGFloat = 16
+        let thick = PenSize.medium.width
 
         let body: [CGPoint] = [
             CGPoint(x: w * 0.28, y: h * 0.62),
@@ -72,7 +75,7 @@ final class DoodleCanvasView: UIView {
             CGPoint(x: w * 0.74, y: h * 0.28),
             CGPoint(x: w * 0.78, y: h * 0.32)
         ]
-        strokes.append((black, thick, body))
+        strokes.append(DoodleStroke(color: black, width: thick, opacity: 1, style: .marker, points: body))
 
         let wing: [CGPoint] = [
             CGPoint(x: w * 0.48, y: h * 0.52),
@@ -80,7 +83,7 @@ final class DoodleCanvasView: UIView {
             CGPoint(x: w * 0.52, y: h * 0.28),
             CGPoint(x: w * 0.58, y: h * 0.42)
         ]
-        strokes.append((red, thick, wing))
+        strokes.append(DoodleStroke(color: red, width: thick, opacity: 1, style: .marker, points: wing))
 
         let tail: [CGPoint] = [
             CGPoint(x: w * 0.28, y: h * 0.62),
@@ -88,14 +91,14 @@ final class DoodleCanvasView: UIView {
             CGPoint(x: w * 0.14, y: h * 0.78),
             CGPoint(x: w * 0.22, y: h * 0.74)
         ]
-        strokes.append((black, thick * 0.85, tail))
+        strokes.append(DoodleStroke(color: black, width: thick * 0.85, opacity: 1, style: .marker, points: tail))
 
         let belly: [CGPoint] = [
             CGPoint(x: w * 0.40, y: h * 0.58),
             CGPoint(x: w * 0.50, y: h * 0.52),
             CGPoint(x: w * 0.58, y: h * 0.46)
         ]
-        strokes.append((red, thick * 0.7, belly))
+        strokes.append(DoodleStroke(color: red, width: thick * 0.7, opacity: 0.85, style: .marker, points: belly))
 
         setNeedsDisplay()
     }
@@ -109,7 +112,7 @@ final class DoodleCanvasView: UIView {
         format.opaque = true
         let renderer = UIGraphicsImageRenderer(bounds: exportBounds, format: format)
         return renderer.image { ctx in
-            UIColor(red: 1.0, green: 0.99, blue: 0.97, alpha: 1).setFill()
+            paperUIColor.setFill()
             ctx.fill(exportBounds)
             drawInk(in: ctx.cgContext)
         }
@@ -142,7 +145,14 @@ final class DoodleCanvasView: UIView {
             setNeedsDisplay()
             return
         }
-        strokes.append((strokeColor, lineWidth, currentPoints))
+        let stroke = DoodleStroke(
+            color: strokeColor,
+            width: lineWidth,
+            opacity: strokeOpacity,
+            style: strokeStyle,
+            points: currentPoints
+        )
+        strokes.append(stroke)
         currentPoints.removeAll()
         setNeedsDisplay()
     }
@@ -155,28 +165,119 @@ final class DoodleCanvasView: UIView {
     private func drawInk(in ctx: CGContext) {
         var all = strokes
         if currentPoints.count > 1 {
-            all.append((strokeColor, lineWidth, currentPoints))
+            all.append(DoodleStroke(
+                color: strokeColor,
+                width: lineWidth,
+                opacity: strokeOpacity,
+                style: strokeStyle,
+                points: currentPoints
+            ))
         }
-        ctx.setLineCap(.round)
-        ctx.setLineJoin(.round)
         for stroke in all {
-            guard let first = stroke.points.first else { continue }
-            ctx.setStrokeColor(stroke.color.cgColor)
-            ctx.setLineWidth(stroke.width)
-            ctx.beginPath()
-            ctx.move(to: first)
-            for point in stroke.points.dropFirst() {
-                ctx.addLine(to: point)
-            }
-            ctx.strokePath()
+            render(stroke, in: ctx)
         }
     }
+
+    private func render(_ stroke: DoodleStroke, in ctx: CGContext) {
+        guard stroke.points.count > 1 else { return }
+        ctx.saveGState()
+        defer { ctx.restoreGState() }
+
+        switch stroke.style {
+        case .marker:
+            drawMarkerPath(stroke, in: ctx)
+
+        case .eraser:
+            // Paint paper color so undo/export stay reliable on an opaque canvas.
+            drawPolyline(
+                stroke.points,
+                width: stroke.width * 1.25,
+                color: paperUIColor,
+                opacity: 1,
+                cap: .round,
+                join: .round,
+                in: ctx
+            )
+        }
+    }
+
+    private func drawPolyline(
+        _ points: [CGPoint],
+        width: CGFloat,
+        color: UIColor,
+        opacity: CGFloat,
+        cap: CGLineCap,
+        join: CGLineJoin,
+        in ctx: CGContext
+    ) {
+        guard let first = points.first else { return }
+        ctx.setLineCap(cap)
+        ctx.setLineJoin(join)
+        ctx.setStrokeColor(color.withAlphaComponent(opacity).cgColor)
+        ctx.setLineWidth(width)
+        ctx.beginPath()
+        ctx.move(to: first)
+        for point in points.dropFirst() {
+            ctx.addLine(to: point)
+        }
+        ctx.strokePath()
+    }
+
+    /// Highlighter: flat chisel tip, always see-through wash.
+    private func drawMarkerPath(_ stroke: DoodleStroke, in ctx: CGContext) {
+        let wash = min(stroke.opacity, 1) * 0.38
+        let band = stroke.width * 1.9
+
+        // Soft outer glow of ink
+        drawPolyline(
+            stroke.points,
+            width: band * 1.15,
+            color: stroke.color,
+            opacity: wash * 0.45,
+            cap: .butt,
+            join: .miter,
+            in: ctx
+        )
+        // Main flat highlighter ribbon
+        drawPolyline(
+            stroke.points,
+            width: band,
+            color: stroke.color,
+            opacity: wash,
+            cap: .butt,
+            join: .miter,
+            in: ctx
+        )
+        // Slight side offset = chisel / felt tip band
+        let tip = stroke.width * 0.22
+        let edged = stroke.points.enumerated().map { index, point -> CGPoint in
+            guard index + 1 < stroke.points.count else { return point }
+            let next = stroke.points[index + 1]
+            let dx = next.x - point.x
+            let dy = next.y - point.y
+            let len = max(0.001, hypot(dx, dy))
+            // Perpendicular nudge
+            return CGPoint(x: point.x - dy / len * tip, y: point.y + dx / len * tip)
+        }
+        drawPolyline(
+            edged,
+            width: band * 0.55,
+            color: stroke.color,
+            opacity: wash * 1.15,
+            cap: .butt,
+            join: .miter,
+            in: ctx
+        )
+    }
+
 }
 
 struct DoodleCanvasRepresentable: UIViewRepresentable {
     @ObservedObject var controller: CanvasController
     var color: UIColor
     var lineWidth: CGFloat
+    var opacity: CGFloat
+    var style: StrokeStyle
 
     func makeUIView(context: Context) -> UIView {
         let host = UIView()
@@ -190,13 +291,18 @@ struct DoodleCanvasRepresentable: UIViewRepresentable {
             canvas.topAnchor.constraint(equalTo: host.topAnchor),
             canvas.bottomAnchor.constraint(equalTo: host.bottomAnchor)
         ])
-        canvas.strokeColor = color
-        canvas.lineWidth = lineWidth
+        applyTools(to: canvas)
         return host
     }
 
     func updateUIView(_ uiView: UIView, context: Context) {
-        controller.view.strokeColor = color
-        controller.view.lineWidth = lineWidth
+        applyTools(to: controller.view)
+    }
+
+    private func applyTools(to canvas: DoodleCanvasView) {
+        canvas.strokeColor = color
+        canvas.lineWidth = lineWidth
+        canvas.strokeOpacity = opacity
+        canvas.strokeStyle = style
     }
 }
