@@ -52,13 +52,14 @@ enum MDType {
 }
 
 enum MDLayout {
-    static let bigButton: CGFloat = 76
-    static let colorSwatch: CGFloat = 52
-    static let toolButton: CGFloat = 64
-    static let strokeTool: CGFloat = 56
-    static let corner: CGFloat = 36
+    static let bigButton: CGFloat = 72
+    static let colorSwatch: CGFloat = 48
+    static let colorSwatchCompact: CGFloat = 40
+    static let toolButton: CGFloat = 52
+    static let strokeTool: CGFloat = 52
+    static let corner: CGFloat = 32
     static let brushWidth: CGFloat = 16
-    static let screenPad: CGFloat = 22
+    static let screenPad: CGFloat = 18
 }
 
 // MARK: - Atmosphere
@@ -336,7 +337,7 @@ struct OpacityChip: View {
     }
 }
 
-/// Live tip preview — shows current color, size, and opacity together.
+/// Compact tip preview — shows current color, size, and opacity together.
 struct TipPreview: View {
     let color: Color
     let size: PenSize
@@ -345,27 +346,72 @@ struct TipPreview: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(MDColor.paper.opacity(0.95))
-                .frame(width: 72, height: 56)
+                .frame(width: 56, height: 44)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .strokeBorder(MDColor.ink.opacity(0.08), lineWidth: 2)
                 )
             if style == .eraser {
                 Image(systemName: "eraser")
-                    .font(.system(size: 22, weight: .bold))
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(MDColor.inkSoft)
             } else {
                 Circle()
                     .fill(color.opacity(opacity))
                     .frame(
-                        width: min(size.width * 0.9, 40),
-                        height: min(size.width * 0.9, 40)
+                        width: min(size.width * 0.75, 30),
+                        height: min(size.width * 0.75, 30)
                     )
             }
         }
         .accessibilityLabel("Tip preview")
+    }
+}
+
+/// Opens the drawing tools menu (color, type, size, soft).
+struct ToolsMenuButton: View {
+    let color: Color
+    let style: StrokeStyle
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(color)
+                        .frame(width: 28, height: 28)
+                        .overlay(
+                            Circle()
+                                .strokeBorder(MDColor.ink.opacity(0.12), lineWidth: 1)
+                        )
+                    if style == .eraser {
+                        Image(systemName: "eraser")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(MDColor.inkSoft)
+                    }
+                }
+                Text("Tools")
+                    .font(MDType.body(17))
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 12, weight: .bold))
+            }
+            .foregroundStyle(MDColor.ink)
+            .padding(.horizontal, 16)
+            .frame(height: MDLayout.toolButton)
+            .background(
+                Capsule()
+                    .fill(MDColor.paper.opacity(0.95))
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(MDColor.ink.opacity(0.1), lineWidth: 2)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Drawing tools")
     }
 }
 
@@ -444,42 +490,7 @@ struct MixColorButton: View {
     }
 }
 
-struct TrayToggleButton: View {
-    let expanded: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                action()
-            }
-        }) {
-            HStack(spacing: 8) {
-                Image(systemName: "circle.lefthalf.filled")
-                    .font(.system(size: 16, weight: .bold))
-                Text(expanded ? "Hide looks" : "Size & soft")
-                    .font(MDType.label(14))
-                Image(systemName: expanded ? "chevron.down" : "chevron.up")
-                    .font(.system(size: 11, weight: .bold))
-            }
-            .foregroundStyle(MDColor.tool)
-            .padding(.horizontal, 14)
-            .frame(height: 48)
-            .background(
-                Capsule()
-                    .fill(MDColor.paper.opacity(0.92))
-            )
-            .overlay(
-                Capsule()
-                    .strokeBorder(MDColor.tool.opacity(0.25), lineWidth: 2)
-            )
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(expanded ? "Hide size and softness" : "Show size and softness")
-    }
-}
-
-/// Tiny section label for the tools tray — quiet, not chrome-y.
+/// Tiny section label for tools sheets — quiet, not chrome-y.
 struct TraySectionLabel: View {
     let title: String
 

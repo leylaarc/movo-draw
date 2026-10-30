@@ -61,6 +61,11 @@ struct ContentView: View {
         } message: {
             Text(errorMessage ?? "")
         }
+        .sheet(isPresented: $tools.showToolsMenu) {
+            DrawingToolsSheet(tools: tools)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
         .sheet(isPresented: $tools.showMoreColors) {
             MoreColorsSheet(tools: tools)
                 .presentationDetents([.medium, .large])
@@ -85,9 +90,9 @@ struct ContentView: View {
 
     private var drawScreen: some View {
         VStack(spacing: 0) {
-            // Brand hero — first-screen signal
-            HStack(alignment: .top) {
-                MovoBrandMark(size: 46)
+            // Slim brand row — canvas gets the room
+            HStack(alignment: .center) {
+                MovoBrandMark(size: 36)
                 Spacer()
                 TipPreview(
                     color: Color(tools.color),
@@ -97,10 +102,10 @@ struct ContentView: View {
                 )
             }
             .padding(.horizontal, MDLayout.screenPad)
-            .padding(.top, 10)
-            .padding(.bottom, 10)
+            .padding(.top, 6)
+            .padding(.bottom, 6)
 
-            // Paper plane — the drawing surface stays dominant
+            // Paper plane — dominant drawing surface
             DoodleCanvasRepresentable(
                 controller: canvas,
                 color: tools.color,
@@ -117,18 +122,18 @@ struct ContentView: View {
             .padding(.horizontal, MDLayout.screenPad)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Calm dock: colors (+ mix) → strokes → looks tray → undo/clear → CTA
-            VStack(spacing: 12) {
-                colorBar
+            // Slim dock: Tools menu + undo/clear + CTA
+            VStack(spacing: 10) {
+                HStack(spacing: 12) {
+                    ToolsMenuButton(
+                        color: Color(tools.color),
+                        style: tools.style
+                    ) {
+                        tools.showToolsMenu = true
+                    }
 
-                strokeTypeRow
+                    Spacer(minLength: 0)
 
-                if tools.trayExpanded {
-                    toolsTray
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-
-                HStack(spacing: 14) {
                     KidToolButton(
                         systemImage: "arrow.uturn.backward",
                         label: "Undo",
@@ -140,12 +145,6 @@ struct ContentView: View {
                         label: "Clear",
                         tint: MDColor.warn
                     ) { canvas.clear() }
-
-                    Spacer(minLength: 0)
-
-                    TrayToggleButton(expanded: tools.trayExpanded) {
-                        tools.trayExpanded.toggle()
-                    }
                 }
 
                 KidPrimaryButton(
@@ -157,96 +156,9 @@ struct ContentView: View {
                 }
             }
             .padding(.horizontal, MDLayout.screenPad)
-            .padding(.top, 12)
-            .padding(.bottom, 14)
-            .animation(.spring(response: 0.4, dampingFraction: 0.84), value: tools.trayExpanded)
+            .padding(.top, 10)
+            .padding(.bottom, 12)
         }
-    }
-
-    private var colorBar: some View {
-        // Mix + Colors stay pinned so kids never have to scroll to find them.
-        HStack(spacing: 10) {
-            MixColorButton(current: Color(tools.color)) {
-                tools.showColorMixer = true
-            }
-
-            MoreColorsButton {
-                tools.showMoreColors = true
-            }
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(CrayonPalette.primary) { swatch in
-                        CrayonSwatch(
-                            color: Color(swatch.color),
-                            selected: tools.style != .eraser && colorsMatch(tools.color, swatch.color),
-                            name: swatch.name
-                        ) {
-                            tools.selectCrayon(swatch.color)
-                        }
-                    }
-                }
-                .padding(.vertical, 6)
-            }
-        }
-        .padding(.horizontal, 2)
-    }
-
-    private var strokeTypeRow: some View {
-        HStack(spacing: 10) {
-            ForEach(StrokeStyle.allCases) { style in
-                StrokeStyleButton(
-                    style: style,
-                    selected: tools.style == style
-                ) {
-                    tools.style = style
-                }
-            }
-            Spacer(minLength: 0)
-        }
-    }
-
-    private var toolsTray: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            TraySectionLabel(title: "Size")
-            HStack(spacing: 10) {
-                ForEach(PenSize.allCases) { size in
-                    PenSizeChip(
-                        size: size,
-                        color: Color(tools.color),
-                        opacity: tools.opacityValue,
-                        selected: tools.size == size
-                    ) {
-                        tools.size = size
-                    }
-                }
-                Spacer(minLength: 0)
-            }
-
-            TraySectionLabel(title: "Softness")
-            HStack(spacing: 12) {
-                ForEach(OpacityPreset.allCases) { preset in
-                    OpacityChip(
-                        preset: preset,
-                        color: Color(tools.color),
-                        selected: tools.opacity == preset
-                    ) {
-                        tools.opacity = preset
-                    }
-                }
-                Spacer(minLength: 0)
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(MDColor.paper.opacity(0.72))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .strokeBorder(MDColor.ink.opacity(0.06), lineWidth: 1)
-        )
     }
 
     // MARK: - Alive (one job: show the result)
@@ -358,6 +270,124 @@ struct ContentView: View {
             self.errorMessage = error.localizedDescription
             self.screen = .draw
         }
+    }
+}
+
+// MARK: - Tools menu (color, type, size, soft — off the canvas)
+
+private struct DrawingToolsSheet: View {
+    @ObservedObject var tools: DrawingToolState
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    // Color
+                    VStack(alignment: .leading, spacing: 10) {
+                        TraySectionLabel(title: "Color")
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 10) {
+                                MixColorButton(current: Color(tools.color)) {
+                                    dismiss()
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                        tools.showColorMixer = true
+                                    }
+                                }
+                                MoreColorsButton {
+                                    dismiss()
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                        tools.showMoreColors = true
+                                    }
+                                }
+                                ForEach(CrayonPalette.primary) { swatch in
+                                    CrayonSwatch(
+                                        color: Color(swatch.color),
+                                        selected: tools.style != .eraser
+                                            && colorsMatch(tools.color, swatch.color),
+                                        name: swatch.name,
+                                        size: MDLayout.colorSwatchCompact
+                                    ) {
+                                        tools.selectCrayon(swatch.color)
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+
+                    // Type
+                    VStack(alignment: .leading, spacing: 10) {
+                        TraySectionLabel(title: "Type")
+                        HStack(spacing: 10) {
+                            ForEach(StrokeStyle.allCases) { style in
+                                StrokeStyleButton(
+                                    style: style,
+                                    selected: tools.style == style
+                                ) {
+                                    tools.style = style
+                                }
+                            }
+                            Spacer(minLength: 0)
+                        }
+                    }
+
+                    // Size
+                    VStack(alignment: .leading, spacing: 10) {
+                        TraySectionLabel(title: "Size")
+                        HStack(spacing: 8) {
+                            ForEach(PenSize.allCases) { size in
+                                PenSizeChip(
+                                    size: size,
+                                    color: Color(tools.color),
+                                    opacity: tools.opacityValue,
+                                    selected: tools.size == size
+                                ) {
+                                    tools.size = size
+                                }
+                            }
+                            Spacer(minLength: 0)
+                        }
+                    }
+
+                    // Softness
+                    VStack(alignment: .leading, spacing: 10) {
+                        TraySectionLabel(title: "Softness")
+                        HStack(spacing: 10) {
+                            ForEach(OpacityPreset.allCases) { preset in
+                                OpacityChip(
+                                    preset: preset,
+                                    color: Color(tools.color),
+                                    selected: tools.opacity == preset
+                                ) {
+                                    tools.opacity = preset
+                                }
+                            }
+                            Spacer(minLength: 0)
+                        }
+                    }
+                }
+                .padding(20)
+            }
+            .background(MDColor.mist.ignoresSafeArea())
+            .navigationTitle("Tools")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .font(MDType.body(17))
+                        .foregroundStyle(MDColor.life)
+                }
+            }
+        }
+    }
+
+    private func colorsMatch(_ a: UIColor, _ b: UIColor) -> Bool {
+        var ar: CGFloat = 0, ag: CGFloat = 0, ab: CGFloat = 0, aa: CGFloat = 0
+        var br: CGFloat = 0, bg: CGFloat = 0, bb: CGFloat = 0, ba: CGFloat = 0
+        a.getRed(&ar, green: &ag, blue: &ab, alpha: &aa)
+        b.getRed(&br, green: &bg, blue: &bb, alpha: &ba)
+        return abs(ar - br) < 0.01 && abs(ag - bg) < 0.01 && abs(ab - bb) < 0.01
     }
 }
 

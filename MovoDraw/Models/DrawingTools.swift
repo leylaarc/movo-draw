@@ -108,8 +108,8 @@ final class DrawingToolState: ObservableObject {
     @Published var size: PenSize = .medium
     @Published var opacity: OpacityPreset = .solid
     @Published var style: StrokeStyle = .pen
-    /// Look tray (size + softness) starts open so specifics are obvious.
-    @Published var trayExpanded = true
+    /// All drawing options live in one sheet so the canvas stays big.
+    @Published var showToolsMenu = false
     @Published var showMoreColors = false
     @Published var showColorMixer = false
 
