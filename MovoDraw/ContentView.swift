@@ -117,7 +117,7 @@ struct ContentView: View {
             .padding(.horizontal, MDLayout.screenPad)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Slim dock: Tools menu + undo/clear + CTA
+            // Slim dock: Tools + eraser + undo/clear + CTA
             VStack(spacing: 10) {
                 HStack(spacing: 12) {
                     ToolsMenuButton(
@@ -128,6 +128,12 @@ struct ContentView: View {
                     }
 
                     Spacer(minLength: 0)
+
+                    KidToolButton(
+                        systemImage: "eraser",
+                        label: tools.isErasing ? "Erasing" : "Eraser",
+                        tint: tools.isErasing ? MDColor.life : MDColor.tool
+                    ) { tools.toggleEraser() }
 
                     KidToolButton(
                         systemImage: "arrow.uturn.backward",
@@ -268,7 +274,7 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Tools menu (color, type, size, opacity — off the canvas)
+// MARK: - Tools menu (color, size, opacity — always draws with marker)
 
 private struct DrawingToolsSheet: View {
     @ObservedObject var tools: DrawingToolState
@@ -305,23 +311,7 @@ private struct DrawingToolsSheet: View {
                         }
                     }
 
-                    // Marker or Eraser
-                    VStack(alignment: .leading, spacing: 10) {
-                        TraySectionLabel(title: "Tool")
-                        HStack(spacing: 10) {
-                            ForEach(StrokeStyle.allCases) { style in
-                                StrokeStyleButton(
-                                    style: style,
-                                    selected: tools.style == style
-                                ) {
-                                    tools.style = style
-                                }
-                            }
-                            Spacer(minLength: 0)
-                        }
-                    }
-
-                    // Size — Small → Huge
+                    // Size — Fine → Huge
                     VStack(alignment: .leading, spacing: 10) {
                         TraySectionLabel(title: "Size")
                         ScrollView(.horizontal, showsIndicators: false) {

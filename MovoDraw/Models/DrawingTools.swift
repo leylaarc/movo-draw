@@ -106,16 +106,22 @@ final class DrawingToolState: ObservableObject {
         color.withAlphaComponent(opacityValue)
     }
 
+    var isErasing: Bool { style == .eraser }
+
     func selectCrayon(_ uiColor: UIColor) {
         color = uiColor
         pickerColor = Color(uiColor)
-        if style == .eraser { style = .marker }
+        style = .marker
     }
 
     func applyPickerColor(_ newColor: Color) {
         pickerColor = newColor
         color = UIColor(newColor)
-        if style == .eraser { style = .marker }
+        style = .marker
+    }
+
+    func toggleEraser() {
+        style = (style == .eraser) ? .marker : .eraser
     }
 }
 

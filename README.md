@@ -48,7 +48,7 @@ If `FAL_KEY` is missing but `OPENAI_API_KEY` is set, the app uses **OpenAI Image
 
 - **Tools menu** — color, type, size, and opacity live in one sheet so the canvas stays big
 - **Colors** — quick swatches + **More Colors** (gradient color wheel + Bright / Soft / Skin / Earth / Neutrals crayons)
-- **Tool** — Marker (flat translucent highlighter) · Eraser — AI makes the doodle realistic, so extra pen styles aren’t needed
+- **Draw tool** — always Marker (highlighter). Eraser lives on the dock next to Undo — no pen-type picker
 - **Size** — Fine / Tiny / Small / Medium / Large / X-Large / Huge
 - **Opacity** — continuous scale from Faint → Solid
 - Slim Draw dock: **Tools** · Undo · Clear · Bring to Life
