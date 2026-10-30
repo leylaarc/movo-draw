@@ -396,32 +396,13 @@ struct TipPreview: View {
                 RoundedRectangle(cornerRadius: 3, style: .continuous)
                     .fill(color.opacity(min(opacity, 1) * 0.4))
                     .frame(width: tip * 1.5, height: tip * 0.7)
-            case .crayon:
-                // Speckled wax blob
-                ZStack {
-                    Circle()
-                        .fill(color.opacity(opacity * 0.55))
-                        .frame(width: tip, height: tip)
-                    Circle()
-                        .fill(color.opacity(opacity * 0.7))
-                        .frame(width: tip * 0.35, height: tip * 0.35)
-                        .offset(x: tip * 0.18, y: -tip * 0.12)
-                    Circle()
-                        .fill(color.opacity(opacity * 0.45))
-                        .frame(width: tip * 0.28, height: tip * 0.28)
-                        .offset(x: -tip * 0.16, y: tip * 0.14)
-                }
-            case .pen:
-                Circle()
-                    .fill(color.opacity(opacity))
-                    .frame(width: tip, height: tip)
             }
         }
         .accessibilityLabel("Tip preview")
     }
 }
 
-/// Opens the drawing tools menu (color, type, size, opacity).
+/// Opens the drawing tools menu (color, tool, size, opacity).
 struct ToolsMenuButton: View {
     let color: Color
     let style: StrokeStyle

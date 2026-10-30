@@ -305,9 +305,9 @@ private struct DrawingToolsSheet: View {
                         }
                     }
 
-                    // Type
+                    // Marker or Eraser
                     VStack(alignment: .leading, spacing: 10) {
-                        TraySectionLabel(title: "Type")
+                        TraySectionLabel(title: "Tool")
                         HStack(spacing: 10) {
                             ForEach(StrokeStyle.allCases) { style in
                                 StrokeStyleButton(

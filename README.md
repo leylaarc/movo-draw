@@ -2,7 +2,7 @@
 
 Kids doodle with their finger. Tap **Bring to Life** and AI turns the doodle into a **realistic, kid-safe image** that matches what they drew (black+red dragon doodle → realistic black+red dragon).
 
-Ages **2–12**. Huge buttons, playful crayons, and a simple tools tray (size, stroke, opacity).
+Ages **2–12**. Huge buttons, playful colors, and a simple tools tray (size, marker, opacity).
 
 ## Open & run
 
@@ -48,7 +48,7 @@ If `FAL_KEY` is missing but `OPENAI_API_KEY` is set, the app uses **OpenAI Image
 
 - **Tools menu** — color, type, size, and opacity live in one sheet so the canvas stays big
 - **Colors** — quick swatches + **More Colors** (gradient color wheel + Bright / Soft / Skin / Earth / Neutrals crayons)
-- **Stroke** — Pen (solid ink) · Marker (flat translucent highlighter) · Crayon (waxy / speckled) · Eraser
+- **Tool** — Marker (flat translucent highlighter) · Eraser — AI makes the doodle realistic, so extra pen styles aren’t needed
 - **Size** — Fine / Tiny / Small / Medium / Large / X-Large / Huge
 - **Opacity** — continuous scale from Faint → Solid
 - Slim Draw dock: **Tools** · Undo · Clear · Bring to Life
@@ -58,7 +58,7 @@ If `FAL_KEY` is missing but `OPENAI_API_KEY` is set, the app uses **OpenAI Image
 
 | Feature | Needs key? | Notes |
 |--------|------------|--------|
-| Draw canvas (colors, sizes, stroke styles, opacity, undo, clear) | No | Offline; collapsible tray keeps canvas dominant |
+| Draw canvas (colors, sizes, marker / eraser, opacity, undo, clear) | No | Offline; collapsible tray keeps canvas dominant |
 | Bring to Life → **realistic image** | **Yes** (`FAL_KEY` or `OPENAI_API_KEY`) | Primary result |
 | Offline fallback (SpriteKit flight) | No | Clearly labeled **Offline** — secondary only |
 | Kid-safe prompt filter | Always | Blocks scary/violent/sexual terms; fal safety checker / OpenAI moderation |

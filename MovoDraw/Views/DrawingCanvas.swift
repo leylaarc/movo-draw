@@ -19,7 +19,7 @@ final class DoodleCanvasView: UIView {
     var strokeColor: UIColor = .black
     var lineWidth: CGFloat = PenSize.medium.width
     var strokeOpacity: CGFloat = 1
-    var strokeStyle: StrokeStyle = .pen
+    var strokeStyle: StrokeStyle = .marker
 
     private var strokes: [DoodleStroke] = []
     private var undone: [DoodleStroke] = []
@@ -75,7 +75,7 @@ final class DoodleCanvasView: UIView {
             CGPoint(x: w * 0.74, y: h * 0.28),
             CGPoint(x: w * 0.78, y: h * 0.32)
         ]
-        strokes.append(DoodleStroke(color: black, width: thick, opacity: 1, style: .pen, points: body))
+        strokes.append(DoodleStroke(color: black, width: thick, opacity: 1, style: .marker, points: body))
 
         let wing: [CGPoint] = [
             CGPoint(x: w * 0.48, y: h * 0.52),
@@ -91,7 +91,7 @@ final class DoodleCanvasView: UIView {
             CGPoint(x: w * 0.14, y: h * 0.78),
             CGPoint(x: w * 0.22, y: h * 0.74)
         ]
-        strokes.append(DoodleStroke(color: black, width: thick * 0.85, opacity: 1, style: .crayon, points: tail))
+        strokes.append(DoodleStroke(color: black, width: thick * 0.85, opacity: 1, style: .marker, points: tail))
 
         let belly: [CGPoint] = [
             CGPoint(x: w * 0.40, y: h * 0.58),
@@ -184,23 +184,8 @@ final class DoodleCanvasView: UIView {
         defer { ctx.restoreGState() }
 
         switch stroke.style {
-        case .pen:
-            // Clean ink — round tip, solid.
-            drawPolyline(
-                stroke.points,
-                width: stroke.width,
-                color: stroke.color,
-                opacity: stroke.opacity,
-                cap: .round,
-                join: .round,
-                in: ctx
-            )
-
         case .marker:
             drawMarkerPath(stroke, in: ctx)
-
-        case .crayon:
-            drawCrayonPath(stroke, in: ctx)
 
         case .eraser:
             // Paint paper color so undo/export stay reliable on an opaque canvas.
@@ -238,7 +223,7 @@ final class DoodleCanvasView: UIView {
         ctx.strokePath()
     }
 
-    /// Highlighter: flat chisel tip, always see-through wash (not solid like pen/crayon).
+    /// Highlighter: flat chisel tip, always see-through wash.
     private func drawMarkerPath(_ stroke: DoodleStroke, in ctx: CGContext) {
         let wash = min(stroke.opacity, 1) * 0.38
         let band = stroke.width * 1.9
@@ -285,79 +270,6 @@ final class DoodleCanvasView: UIView {
         )
     }
 
-    /// Waxy crayon: rough broken edges, uneven coverage, chalk speckles.
-    private func drawCrayonPath(_ stroke: DoodleStroke, in ctx: CGContext) {
-        let w = stroke.width
-        let baseOpacity = stroke.opacity
-
-        // Fat waxy undercoat — broken / incomplete
-        let underOffsets: [(CGFloat, CGFloat, CGFloat)] = [
-            (0, 0, 0.55),
-            (w * 0.28, -w * 0.18, 0.35),
-            (-w * 0.32, w * 0.22, 0.30),
-            (w * 0.18, w * 0.30, 0.28),
-            (-w * 0.24, -w * 0.26, 0.25)
-        ]
-        for (dx, dy, weight) in underOffsets {
-            let shifted = stroke.points.map { CGPoint(x: $0.x + dx, y: $0.y + dy) }
-            drawPolyline(
-                shifted,
-                width: w * (0.65 + weight * 0.4),
-                color: stroke.color,
-                opacity: baseOpacity * weight,
-                cap: .round,
-                join: .round,
-                in: ctx
-            )
-        }
-
-        // Short scratchy segments with uneven width (wax catch on paper)
-        if stroke.points.count >= 2 {
-            var i = 0
-            while i < stroke.points.count - 1 {
-                let a = stroke.points[i]
-                let b = stroke.points[min(i + 1, stroke.points.count - 1)]
-                let seed = Int(a.x * 17 + a.y * 11 + CGFloat(i) * 3)
-                let skip = (seed % 9) == 0 // occasional gaps = dry crayon
-                if !skip {
-                    let wobble = 0.55 + CGFloat(seed % 5) * 0.12
-                    let alpha = baseOpacity * (0.35 + CGFloat(seed % 4) * 0.12)
-                    let jx = CGFloat((seed % 5) - 2) * 0.35
-                    let jy = CGFloat(((seed / 5) % 5) - 2) * 0.35
-                    drawPolyline(
-                        [
-                            CGPoint(x: a.x + jx, y: a.y + jy),
-                            CGPoint(x: b.x + jx, y: b.y + jy)
-                        ],
-                        width: w * wobble,
-                        color: stroke.color,
-                        opacity: alpha,
-                        cap: .round,
-                        join: .round,
-                        in: ctx
-                    )
-                }
-                i += 1
-            }
-        }
-
-        // Dense chalk speckles
-        ctx.setFillColor(stroke.color.withAlphaComponent(baseOpacity * 0.5).cgColor)
-        let step = max(2, Int(w * 0.22))
-        var i = 0
-        while i < stroke.points.count {
-            let p = stroke.points[i]
-            let seed = Int(p.x * 13 + p.y * 9 + CGFloat(i))
-            for n in 0..<3 {
-                let s2 = seed &+ n &* 47
-                let jx = CGFloat((s2 % 9) - 4) * max(0.6, w * 0.08)
-                let jy = CGFloat(((s2 / 9) % 9) - 4) * max(0.6, w * 0.08)
-                let r = max(0.9, w * (0.08 + CGFloat(s2 % 3) * 0.03))
-                ctx.fillEllipse(in: CGRect(x: p.x + jx - r, y: p.y + jy - r, width: r * 2, height: r * 2))
-            }
-            i += step
-        }
-    }
 }
 
 struct DoodleCanvasRepresentable: UIViewRepresentable {

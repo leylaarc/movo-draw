@@ -4,9 +4,8 @@ import UIKit
 // MARK: - Stroke style
 
 enum StrokeStyle: String, CaseIterable, Identifiable {
-    case pen
+    /// Flat translucent highlighter — the only draw tool (AI makes the result realistic).
     case marker
-    case crayon
     case eraser
 
     var id: String { rawValue }
@@ -14,18 +13,14 @@ enum StrokeStyle: String, CaseIterable, Identifiable {
     /// Short kid-facing label under the icon.
     var label: String {
         switch self {
-        case .pen: return "Pen"
         case .marker: return "Marker"
-        case .crayon: return "Crayon"
         case .eraser: return "Eraser"
         }
     }
 
     var systemImage: String {
         switch self {
-        case .pen: return "pencil.tip"
         case .marker: return "highlighter"
-        case .crayon: return "paintbrush.pointed"
         case .eraser: return "eraser"
         }
     }
@@ -98,7 +93,7 @@ final class DrawingToolState: ObservableObject {
     @Published var size: PenSize = .medium
     /// Continuous opacity (see-through → solid).
     @Published var opacity: CGFloat = OpacityScale.default
-    @Published var style: StrokeStyle = .pen
+    @Published var style: StrokeStyle = .marker
     /// All drawing options live in one sheet so the canvas stays big.
     @Published var showToolsMenu = false
     /// Palette + gradient color wheel (was “Mix”).
@@ -114,13 +109,13 @@ final class DrawingToolState: ObservableObject {
     func selectCrayon(_ uiColor: UIColor) {
         color = uiColor
         pickerColor = Color(uiColor)
-        if style == .eraser { style = .pen }
+        if style == .eraser { style = .marker }
     }
 
     func applyPickerColor(_ newColor: Color) {
         pickerColor = newColor
         color = UIColor(newColor)
-        if style == .eraser { style = .pen }
+        if style == .eraser { style = .marker }
     }
 }
 
