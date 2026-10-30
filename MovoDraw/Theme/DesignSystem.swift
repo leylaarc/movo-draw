@@ -256,7 +256,7 @@ struct StrokeStyleButton: View {
     }
 }
 
-/// Size chip with live tip preview circle.
+/// Size chip with live tip preview circle (Small → Huge).
 struct PenSizeChip: View {
     let size: PenSize
     let color: Color
@@ -274,7 +274,7 @@ struct PenSizeChip: View {
                 ZStack {
                     Circle()
                         .fill(MDColor.paper)
-                        .frame(width: 52, height: 52)
+                        .frame(width: 48, height: 48)
                         .overlay(
                             Circle()
                                 .strokeBorder(
@@ -285,55 +285,86 @@ struct PenSizeChip: View {
                     Circle()
                         .fill(color.opacity(opacity))
                         .frame(
-                            width: min(size.width * 0.85, 36),
-                            height: min(size.width * 0.85, 36)
+                            width: min(size.width * 0.75, 32),
+                            height: min(size.width * 0.75, 32)
                         )
                 }
                 Text(size.label)
-                    .font(MDType.label(12))
+                    .font(MDType.label(11))
                     .foregroundStyle(selected ? MDColor.ink : MDColor.inkSoft)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
             }
+            .frame(width: 56)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(size.label)
     }
 }
 
-struct OpacityChip: View {
-    let preset: OpacityPreset
+/// Continuous opacity control — faint on the left, solid on the right.
+struct OpacityScaleControl: View {
+    @Binding var opacity: CGFloat
     let color: Color
-    let selected: Bool
-    let action: () -> Void
 
     var body: some View {
-        Button(action: {
-            withAnimation(.spring(response: 0.32, dampingFraction: 0.55)) {
-                action()
+        VStack(spacing: 10) {
+            ZStack {
+                CheckerboardFill()
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(color.opacity(opacity))
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(MDColor.ink.opacity(0.12), lineWidth: 2)
             }
-        }) {
-            VStack(spacing: 6) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(MDColor.paper)
-                        .frame(width: 64, height: 44)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .strokeBorder(
-                                    selected ? MDColor.life : MDColor.ink.opacity(0.1),
-                                    lineWidth: selected ? 3 : 2
-                                )
-                        )
-                    Capsule()
-                        .fill(color.opacity(preset.value))
-                        .frame(width: 36, height: 14)
-                }
-                Text(preset.label)
+            .frame(height: 36)
+
+            Slider(
+                value: $opacity,
+                in: OpacityScale.minimum...OpacityScale.maximum
+            )
+            .tint(MDColor.life)
+
+            HStack {
+                Text("Faint")
                     .font(MDType.label(12))
-                    .foregroundStyle(selected ? MDColor.ink : MDColor.inkSoft)
+                    .foregroundStyle(MDColor.inkSoft)
+                Spacer()
+                Text("Solid")
+                    .font(MDType.label(12))
+                    .foregroundStyle(MDColor.inkSoft)
             }
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(preset.label)
+        .accessibilityLabel("Opacity")
+        .accessibilityValue("\(Int((opacity * 100).rounded())) percent")
+    }
+}
+
+/// Light checkerboard so see-through ink is obvious on paper.
+private struct CheckerboardFill: View {
+    var body: some View {
+        Canvas { context, size in
+            let cell: CGFloat = 8
+            var y: CGFloat = 0
+            var row = 0
+            while y < size.height {
+                var x: CGFloat = 0
+                var col = 0
+                while x < size.width {
+                    let dark = (row + col) % 2 == 0
+                    let rect = CGRect(x: x, y: y, width: cell, height: cell)
+                    context.fill(
+                        Path(rect),
+                        with: .color(dark ? Color.black.opacity(0.08) : Color.white)
+                    )
+                    x += cell
+                    col += 1
+                }
+                y += cell
+                row += 1
+            }
+        }
+        .background(MDColor.paper)
     }
 }
 
@@ -370,7 +401,7 @@ struct TipPreview: View {
     }
 }
 
-/// Opens the drawing tools menu (color, type, size, soft).
+/// Opens the drawing tools menu (color, type, size, opacity).
 struct ToolsMenuButton: View {
     let color: Color
     let style: StrokeStyle
@@ -415,39 +446,19 @@ struct ToolsMenuButton: View {
     }
 }
 
+/// Opens More Colors — gradient wheel + full crayon box.
 struct MoreColorsButton: View {
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                ZStack {
-                    Circle()
-                        .fill(MDColor.paper.opacity(0.95))
-                        .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
-                    Image(systemName: "circle.grid.3x3.fill")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(MDColor.inkSoft)
-                }
-                .overlay(
-                    Circle()
-                        .strokeBorder(MDColor.ink.opacity(0.12), lineWidth: 2)
-                        .frame(width: MDLayout.colorSwatch, height: MDLayout.colorSwatch)
-                )
-                Text("Colors")
-                    .font(MDType.label(11))
-                    .foregroundStyle(MDColor.inkSoft)
-            }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("More colors")
-    }
-}
-
-/// Opens the Mix sheet — always visible, not a hidden ColorPicker overlay.
-struct MixColorButton: View {
     let current: Color
     let action: () -> Void
+
+    private static let wheelColors: [Color] = [
+        Color(red: 1, green: 0.2, blue: 0.3),
+        Color(red: 1, green: 0.7, blue: 0.1),
+        Color(red: 0.25, green: 0.85, blue: 0.35),
+        Color(red: 0.2, green: 0.55, blue: 1),
+        Color(red: 0.65, green: 0.3, blue: 0.95),
+        Color(red: 1, green: 0.2, blue: 0.3)
+    ]
 
     var body: some View {
         Button(action: action) {
@@ -456,14 +467,7 @@ struct MixColorButton: View {
                     Circle()
                         .fill(
                             AngularGradient(
-                                colors: [
-                                    Color(red: 1, green: 0.2, blue: 0.3),
-                                    Color(red: 1, green: 0.7, blue: 0.1),
-                                    Color(red: 0.25, green: 0.85, blue: 0.35),
-                                    Color(red: 0.2, green: 0.55, blue: 1),
-                                    Color(red: 0.65, green: 0.3, blue: 0.95),
-                                    Color(red: 1, green: 0.2, blue: 0.3)
-                                ],
+                                colors: Self.wheelColors,
                                 center: .center
                             )
                         )
@@ -475,18 +479,17 @@ struct MixColorButton: View {
                             Circle()
                                 .strokeBorder(MDColor.paper, lineWidth: 3)
                         )
-                    Image(systemName: "plus")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(MDColor.ink.opacity(0.55))
-                        .offset(x: 16, y: 16)
                 }
-                Text("Mix")
-                    .font(MDType.label(11))
+                Text("More Colors")
+                    .font(MDType.label(10))
                     .foregroundStyle(MDColor.inkSoft)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .frame(width: MDLayout.colorSwatch + 8)
             }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Mix your own color")
+        .accessibilityLabel("More colors")
     }
 }
 
@@ -547,38 +550,105 @@ struct NamedCrayonSwatch: View {
     }
 }
 
-/// Big, fully visible system color picker for the Mix sheet.
-struct MixYourOwnColorCard: View {
+/// Kid-friendly hue wheel + brightness slider for More Colors.
+struct GradientColorWheel: View {
     @Binding var color: Color
     var onPicked: (Color) -> Void
 
+    @State private var hue: Double = 0
+    @State private var saturation: Double = 0.85
+    @State private var brightness: Double = 1
+    @State private var didLoad = false
+
+    private let wheelSize: CGFloat = 220
+
+    private static let spectrum: [Color] = [
+        Color(hue: 0.00, saturation: 1, brightness: 1),
+        Color(hue: 0.08, saturation: 1, brightness: 1),
+        Color(hue: 0.16, saturation: 1, brightness: 1),
+        Color(hue: 0.33, saturation: 1, brightness: 1),
+        Color(hue: 0.50, saturation: 1, brightness: 1),
+        Color(hue: 0.66, saturation: 1, brightness: 1),
+        Color(hue: 0.75, saturation: 1, brightness: 1),
+        Color(hue: 0.83, saturation: 1, brightness: 1),
+        Color(hue: 1.00, saturation: 1, brightness: 1)
+    ]
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Mix your own")
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Pick a color")
                 .font(MDType.title(22))
                 .foregroundStyle(MDColor.ink)
-            Text("Pick any color")
+            Text("Drag on the wheel, then slide brightness.")
                 .font(MDType.label(15))
                 .foregroundStyle(MDColor.inkSoft)
 
-            HStack(spacing: 16) {
-                Circle()
-                    .fill(color)
-                    .frame(width: 64, height: 64)
-                    .overlay(
-                        Circle()
-                            .strokeBorder(MDColor.ink.opacity(0.15), lineWidth: 2)
-                    )
+            HStack {
+                Spacer(minLength: 0)
+                ZStack {
+                    Circle()
+                        .fill(
+                            AngularGradient(
+                                colors: Self.spectrum,
+                                center: .center
+                            )
+                        )
 
-                ColorPicker("Color", selection: $color, supportsOpacity: false)
-                    .labelsHidden()
-                    .scaleEffect(1.35)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .onChange(of: color) { _, newValue in
-                        onPicked(newValue)
-                    }
+                    // White center → saturated rim
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [.white, .white.opacity(0)],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: wheelSize * 0.5
+                            )
+                        )
+
+                    // Dim the whole wheel to preview brightness
+                    Circle()
+                        .fill(Color.black.opacity(max(0, 1 - brightness) * 0.85))
+                        .allowsHitTesting(false)
+
+                    Circle()
+                        .strokeBorder(MDColor.paper, lineWidth: 6)
+                        .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
+
+                    wheelThumb
+                }
+                .frame(width: wheelSize, height: wheelSize)
+                .clipShape(Circle())
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            updateHS(from: value.location)
+                        }
+                )
+                .accessibilityLabel("Color wheel")
+                Spacer(minLength: 0)
             }
-            .padding(.vertical, 4)
+
+            VStack(spacing: 8) {
+                HStack(spacing: 12) {
+                    Circle()
+                        .fill(liveColor)
+                        .frame(width: 44, height: 44)
+                        .overlay(
+                            Circle()
+                                .strokeBorder(MDColor.ink.opacity(0.15), lineWidth: 2)
+                        )
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Brightness")
+                            .font(MDType.label(13))
+                            .foregroundStyle(MDColor.inkSoft)
+                        Slider(value: $brightness, in: 0.15...1)
+                            .tint(MDColor.life)
+                            .onChange(of: brightness) { _, _ in
+                                commitColor()
+                            }
+                    }
+                }
+            }
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -590,7 +660,69 @@ struct MixYourOwnColorCard: View {
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .strokeBorder(MDColor.life.opacity(0.35), lineWidth: 2)
         )
+        .onAppear {
+            guard !didLoad else { return }
+            didLoad = true
+            syncFromBoundColor()
+        }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Mix your own color")
+        .accessibilityLabel("More colors wheel")
+    }
+
+    private var liveColor: Color {
+        Color(hue: hue, saturation: saturation, brightness: brightness)
+    }
+
+    private var wheelThumb: some View {
+        let radius = (wheelSize / 2) * saturation * 0.92
+        // AngularGradient starts at top and runs clockwise — match thumb to that.
+        let a = hue * 2 * .pi
+        let x = sin(a) * radius
+        let y = -cos(a) * radius
+        return Circle()
+            .fill(liveColor)
+            .frame(width: 28, height: 28)
+            .overlay(
+                Circle()
+                    .strokeBorder(.white, lineWidth: 3)
+            )
+            .shadow(color: .black.opacity(0.25), radius: 3, y: 1)
+            .offset(x: x, y: y)
+            .allowsHitTesting(false)
+    }
+
+    private func updateHS(from point: CGPoint) {
+        let center = CGPoint(x: wheelSize / 2, y: wheelSize / 2)
+        let dx = point.x - center.x
+        let dy = point.y - center.y
+        let distance = sqrt(dx * dx + dy * dy)
+        let maxR = wheelSize / 2
+        guard distance > 2 else {
+            saturation = 0
+            commitColor()
+            return
+        }
+        // 0 at north, clockwise — same as SwiftUI AngularGradient.
+        var angle = atan2(dx, -dy)
+        if angle < 0 { angle += 2 * .pi }
+        hue = angle / (2 * .pi)
+        saturation = min(max(distance / maxR, 0), 1)
+        commitColor()
+    }
+
+    private func commitColor() {
+        let next = liveColor
+        color = next
+        onPicked(next)
+    }
+
+    private func syncFromBoundColor() {
+        let ui = UIColor(color)
+        var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        if ui.getHue(&h, saturation: &s, brightness: &b, alpha: &a) {
+            hue = Double(h)
+            saturation = Double(max(s, 0.05))
+            brightness = Double(max(b, 0.15))
+        }
     }
 }

@@ -31,22 +31,24 @@ enum StrokeStyle: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - Pen size (kid-friendly named sizes)
+// MARK: - Pen size (Small → Large, kid-friendly steps)
 
 enum PenSize: String, CaseIterable, Identifiable {
     case small
     case medium
     case large
-    case jumbo
+    case xLarge
+    case huge
 
     var id: String { rawValue }
 
     var label: String {
         switch self {
-        case .small: return "Thin"
+        case .small: return "Small"
         case .medium: return "Medium"
-        case .large: return "Thick"
-        case .jumbo: return "Jumbo"
+        case .large: return "Large"
+        case .xLarge: return "X-Large"
+        case .huge: return "Huge"
         }
     }
 
@@ -54,38 +56,20 @@ enum PenSize: String, CaseIterable, Identifiable {
     var width: CGFloat {
         switch self {
         case .small: return 6
-        case .medium: return 14
-        case .large: return 26
-        case .jumbo: return 42
+        case .medium: return 12
+        case .large: return 20
+        case .xLarge: return 30
+        case .huge: return 44
         }
     }
 }
 
-// MARK: - Opacity presets
+// MARK: - Opacity scale bounds (see-through → solid)
 
-enum OpacityPreset: String, CaseIterable, Identifiable {
-    case light
-    case medium
-    case solid
-
-    var id: String { rawValue }
-
-    /// Kid-friendly words — how “see-through” the stroke is.
-    var label: String {
-        switch self {
-        case .light: return "Soft"
-        case .medium: return "Medium"
-        case .solid: return "Bold"
-        }
-    }
-
-    var value: CGFloat {
-        switch self {
-        case .light: return 0.30
-        case .medium: return 0.65
-        case .solid: return 1.0
-        }
-    }
+enum OpacityScale {
+    static let minimum: CGFloat = 0.15
+    static let maximum: CGFloat = 1.0
+    static let `default`: CGFloat = 1.0
 }
 
 // MARK: - Persisted stroke
@@ -103,18 +87,19 @@ struct DoodleStroke {
 @MainActor
 final class DrawingToolState: ObservableObject {
     @Published var color: UIColor = .black
-    /// Bound to the system color picker (any custom mix).
+    /// Bound to the More Colors wheel / picker.
     @Published var pickerColor: Color = .black
     @Published var size: PenSize = .medium
-    @Published var opacity: OpacityPreset = .solid
+    /// Continuous opacity (see-through → solid).
+    @Published var opacity: CGFloat = OpacityScale.default
     @Published var style: StrokeStyle = .pen
     /// All drawing options live in one sheet so the canvas stays big.
     @Published var showToolsMenu = false
+    /// Palette + gradient color wheel (was “Mix”).
     @Published var showMoreColors = false
-    @Published var showColorMixer = false
 
     var lineWidth: CGFloat { size.width }
-    var opacityValue: CGFloat { opacity.value }
+    var opacityValue: CGFloat { opacity }
 
     var paintColor: UIColor {
         color.withAlphaComponent(opacityValue)

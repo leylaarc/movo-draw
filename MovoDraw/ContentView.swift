@@ -68,12 +68,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $tools.showMoreColors) {
             MoreColorsSheet(tools: tools)
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
-        }
-        .sheet(isPresented: $tools.showColorMixer) {
-            ColorMixerSheet(tools: tools)
-                .presentationDetents([.medium])
+                .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
         .task {
@@ -273,7 +268,7 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Tools menu (color, type, size, soft — off the canvas)
+// MARK: - Tools menu (color, type, size, opacity — off the canvas)
 
 private struct DrawingToolsSheet: View {
     @ObservedObject var tools: DrawingToolState
@@ -288,13 +283,7 @@ private struct DrawingToolsSheet: View {
                         TraySectionLabel(title: "Color")
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 10) {
-                                MixColorButton(current: Color(tools.color)) {
-                                    dismiss()
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                                        tools.showColorMixer = true
-                                    }
-                                }
-                                MoreColorsButton {
+                                MoreColorsButton(current: Color(tools.color)) {
                                     dismiss()
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                                         tools.showMoreColors = true
@@ -332,39 +321,33 @@ private struct DrawingToolsSheet: View {
                         }
                     }
 
-                    // Size
+                    // Size — Small → Huge
                     VStack(alignment: .leading, spacing: 10) {
                         TraySectionLabel(title: "Size")
-                        HStack(spacing: 8) {
-                            ForEach(PenSize.allCases) { size in
-                                PenSizeChip(
-                                    size: size,
-                                    color: Color(tools.color),
-                                    opacity: tools.opacityValue,
-                                    selected: tools.size == size
-                                ) {
-                                    tools.size = size
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 6) {
+                                ForEach(PenSize.allCases) { size in
+                                    PenSizeChip(
+                                        size: size,
+                                        color: Color(tools.color),
+                                        opacity: tools.opacityValue,
+                                        selected: tools.size == size
+                                    ) {
+                                        tools.size = size
+                                    }
                                 }
                             }
-                            Spacer(minLength: 0)
+                            .padding(.vertical, 2)
                         }
                     }
 
-                    // Softness
+                    // Opacity scale — faint → solid
                     VStack(alignment: .leading, spacing: 10) {
-                        TraySectionLabel(title: "Softness")
-                        HStack(spacing: 10) {
-                            ForEach(OpacityPreset.allCases) { preset in
-                                OpacityChip(
-                                    preset: preset,
-                                    color: Color(tools.color),
-                                    selected: tools.opacity == preset
-                                ) {
-                                    tools.opacity = preset
-                                }
-                            }
-                            Spacer(minLength: 0)
-                        }
+                        TraySectionLabel(title: "Opacity")
+                        OpacityScaleControl(
+                            opacity: $tools.opacity,
+                            color: Color(tools.color)
+                        )
                     }
                 }
                 .padding(20)
@@ -391,58 +374,7 @@ private struct DrawingToolsSheet: View {
     }
 }
 
-// MARK: - Mix your own (dedicated sheet with a real ColorPicker)
-
-private struct ColorMixerSheet: View {
-    @ObservedObject var tools: DrawingToolState
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 20) {
-                MixYourOwnColorCard(
-                    color: Binding(
-                        get: { tools.pickerColor },
-                        set: { tools.applyPickerColor($0) }
-                    )
-                ) { picked in
-                    tools.applyPickerColor(picked)
-                }
-
-                Text("Tap the color circle, then choose any shade.")
-                    .font(MDType.label(15))
-                    .foregroundStyle(MDColor.inkSoft)
-
-                Spacer()
-
-                KidPrimaryButton(
-                    title: "Use This Color",
-                    systemImage: "checkmark",
-                    color: MDColor.life
-                ) {
-                    tools.applyPickerColor(tools.pickerColor)
-                    dismiss()
-                }
-            }
-            .padding(22)
-            .background(MDColor.mist.ignoresSafeArea())
-            .navigationTitle("Mix")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        tools.applyPickerColor(tools.pickerColor)
-                        dismiss()
-                    }
-                    .font(MDType.body(17))
-                    .foregroundStyle(MDColor.life)
-                }
-            }
-        }
-    }
-}
-
-// MARK: - More colors sheet
+// MARK: - More colors (gradient wheel + crayon box)
 
 private struct MoreColorsSheet: View {
     @ObservedObject var tools: DrawingToolState
@@ -454,61 +386,28 @@ private struct MoreColorsSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
-                    Text("Colors")
-                        .font(MDType.brand(28))
-                        .foregroundStyle(MDColor.ink)
-
-                    Button {
-                        dismiss()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                            tools.showColorMixer = true
-                        }
-                    } label: {
-                        HStack(spacing: 14) {
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        AngularGradient(
-                                            colors: [
-                                                Color(red: 1, green: 0.2, blue: 0.3),
-                                                Color(red: 1, green: 0.7, blue: 0.1),
-                                                Color(red: 0.25, green: 0.85, blue: 0.35),
-                                                Color(red: 0.2, green: 0.55, blue: 1),
-                                                Color(red: 0.65, green: 0.3, blue: 0.95),
-                                                Color(red: 1, green: 0.2, blue: 0.3)
-                                            ],
-                                            center: .center
-                                        )
-                                    )
-                                    .frame(width: 52, height: 52)
-                                Circle()
-                                    .fill(Color(tools.color))
-                                    .frame(width: 36, height: 36)
-                            }
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Mix your own")
-                                    .font(MDType.title(20))
-                                    .foregroundStyle(MDColor.ink)
-                                Text("Open the color wheel")
-                                    .font(MDType.label(14))
-                                    .foregroundStyle(MDColor.inkSoft)
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundStyle(MDColor.inkSoft)
-                        }
-                        .padding(14)
-                        .background(
-                            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .fill(MDColor.paper.opacity(0.95))
+                    GradientColorWheel(
+                        color: Binding(
+                            get: { tools.pickerColor },
+                            set: { tools.applyPickerColor($0) }
                         )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .strokeBorder(MDColor.life.opacity(0.35), lineWidth: 2)
-                        )
+                    ) { picked in
+                        tools.applyPickerColor(picked)
                     }
-                    .buttonStyle(.plain)
+
+                    KidPrimaryButton(
+                        title: "Use This Color",
+                        systemImage: "checkmark",
+                        color: MDColor.life
+                    ) {
+                        tools.applyPickerColor(tools.pickerColor)
+                        dismiss()
+                    }
+
+                    Text("Or pick a crayon")
+                        .font(MDType.title(18))
+                        .foregroundStyle(MDColor.inkSoft)
+                        .padding(.top, 4)
 
                     ForEach(CrayonPalette.sections) { section in
                         VStack(alignment: .leading, spacing: 12) {
@@ -534,11 +433,16 @@ private struct MoreColorsSheet: View {
                 .padding(22)
             }
             .background(MDColor.mist.ignoresSafeArea())
+            .navigationTitle("More Colors")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
-                        .font(MDType.body(17))
-                        .foregroundStyle(MDColor.life)
+                    Button("Done") {
+                        tools.applyPickerColor(tools.pickerColor)
+                        dismiss()
+                    }
+                    .font(MDType.body(17))
+                    .foregroundStyle(MDColor.life)
                 }
             }
         }
