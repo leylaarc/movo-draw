@@ -285,8 +285,8 @@ struct PenSizeChip: View {
                     Circle()
                         .fill(color.opacity(opacity))
                         .frame(
-                            width: min(size.width * 0.75, 32),
-                            height: min(size.width * 0.75, 32)
+                            width: min(max(size.width * 0.75, 2.5), 32),
+                            height: min(max(size.width * 0.75, 2.5), 32)
                         )
                 }
                 Text(size.label)
@@ -721,8 +721,10 @@ struct GradientColorWheel: View {
         var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         if ui.getHue(&h, saturation: &s, brightness: &b, alpha: &a) {
             hue = Double(h)
-            saturation = Double(max(s, 0.05))
-            brightness = Double(max(b, 0.15))
+            // Near-black / gray: give a vivid sat so the wheel isn't stuck in the center.
+            saturation = Double(s < 0.08 ? 0.85 : s)
         }
+        // Always open bright — dark crayons (e.g. black) used to drag brightness down.
+        brightness = 1
     }
 }

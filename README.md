@@ -49,7 +49,7 @@ If `FAL_KEY` is missing but `OPENAI_API_KEY` is set, the app uses **OpenAI Image
 - **Tools menu** — color, type, size, and opacity live in one sheet so the canvas stays big
 - **Colors** — quick swatches + **More Colors** (gradient color wheel + Bright / Soft / Skin / Earth / Neutrals crayons)
 - **Stroke** — Pen · Marker · Crayon (textured) · Eraser
-- **Size** — Small / Medium / Large / X-Large / Huge
+- **Size** — Fine / Tiny / Small / Medium / Large / X-Large / Huge
 - **Opacity** — continuous scale from Faint → Solid
 - Slim Draw dock: **Tools** · Undo · Clear · Bring to Life
 - Each stroke stores color, width, opacity, and style so undo / clear / export stay correct

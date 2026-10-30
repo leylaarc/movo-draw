@@ -34,6 +34,8 @@ enum StrokeStyle: String, CaseIterable, Identifiable {
 // MARK: - Pen size (Small → Large, kid-friendly steps)
 
 enum PenSize: String, CaseIterable, Identifiable {
+    case fine
+    case tiny
     case small
     case medium
     case large
@@ -44,6 +46,8 @@ enum PenSize: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
+        case .fine: return "Fine"
+        case .tiny: return "Tiny"
         case .small: return "Small"
         case .medium: return "Medium"
         case .large: return "Large"
@@ -52,9 +56,11 @@ enum PenSize: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Tip diameter in points (fat for toddlers).
+    /// Tip diameter in points (fine lines up to fat toddler strokes).
     var width: CGFloat {
         switch self {
+        case .fine: return 2.5
+        case .tiny: return 4
         case .small: return 6
         case .medium: return 12
         case .large: return 20
